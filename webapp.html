@@ -12,11 +12,18 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#08090b">
 
-  <!-- Web App Manifest -->
-  <link rel="manifest" href="data:application/manifest+json;utf-8,%7B%22name%22%3A%22MoneyMind%22%2C%22short_name%22%3A%22MoneyMind%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%2308090b%22%2C%22theme_color%22%3A%22%2308090b%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20512%20512'%3E%3Crect%20width%3D'512'%20height%3D'512'%20rx%3D'128'%20fill%3D'%2308090b'%2F%3E%3Ccircle%20cx%3D'256'%20cy%3D'256'%20r%3D'210'%20fill%3D'%230f141c'%20stroke%3D'%2310b981'%20stroke-width%3D'16'%2F%3E%3Ctext%20x%3D'50%25'%20y%3D'62%25'%20dominant-baseline%3D'middle'%20text-anchor%3D'middle'%20font-family%3D'sans-serif'%20font-weight%3D'900'%20font-size%3D'220'%20fill%3D'%2334d399'%3EMM%3C%2Ftext%3E%3C%2Fsvg%3E%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+  <!-- Web App Manifest (Android Chrome & Desktop PWA) -->
+  <link rel="manifest" href="manifest.json">
 
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='128' fill='%2308090b'/><circle cx='256' cy='256' r='210' fill='%230f141c' stroke='%2310b981' stroke-width='16'/><text x='50%25' y='62%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-weight='900' font-size='220' fill='%2334d399'>MM</text></svg>">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%2308090b' stroke='%2310b981' stroke-width='4'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='%2334d399' font-family='sans-serif' font-weight='bold'>MM</text></svg>">
+  <!-- Apple Touch Icon (iOS Safari 'Add to Home Screen') -->
+  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <!-- Browser Favicons -->
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='28' fill='%2308090b'/><circle cx='50' cy='50' r='42' fill='%23111114' stroke='rgba(255,255,255,0.3)' stroke-width='4'/><text x='50%25' y='58%25' dominant-baseline='middle' text-anchor='middle' font-size='56' font-family='sans-serif' font-weight='800' fill='%23ffffff'>₹</text></svg>">
 
   <!-- Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -128,16 +135,16 @@
       width: 38px;
       height: 38px;
       border-radius: 11px;
-      background: linear-gradient(135deg, #111622 0%, #1a2233 100%);
-      border: 1px solid var(--border-accent);
+      background: linear-gradient(135deg, #18181b 0%, #000000 100%);
+      border: 1px solid rgba(255, 255, 255, 0.22);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--accent);
-      font-weight: 900;
-      font-size: 15px;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 20px;
       letter-spacing: -0.5px;
-      box-shadow: 0 0 16px var(--accent-glow);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2);
     }
 
     .brand-text h1 {
@@ -866,7 +873,7 @@
     <!-- Header with MoneyMind Branding & Subtle Credit -->
     <header>
       <div class="brand">
-        <div class="brand-logo">MM</div>
+        <div class="brand-logo">₹</div>
         <div class="brand-text">
           <h1>MoneyMind <span class="status-badge" id="apiStatusDot" title="Online"></span></h1>
           <p class="creator-badge">Made with ❤️ by <strong>Chitranshu Shrivastava</strong></p>
@@ -1631,6 +1638,14 @@
       callApi('getManagementData', {}, (data) => {
         cachedMgmtData = data;
 
+        // Auto-populate client Gemini Key if not set in local storage
+        if (!GEMINI_API_KEY && data.clientApiKey) {
+          GEMINI_API_KEY = data.clientApiKey;
+          localStorage.setItem('GEMINI_CLIENT_API_KEY', GEMINI_API_KEY);
+          const keyInput = document.getElementById('geminiApiKeyInput');
+          if (keyInput) keyInput.value = GEMINI_API_KEY;
+        }
+
         // 1. Render PAN Profiles
         const pansList = document.getElementById('hubPansList');
         if (!data.familyProfiles || data.familyProfiles.length === 0) {
@@ -1761,19 +1776,51 @@
     // ========================================================================
     // CAMERA & ATTACHMENT OCR (Gemini Vision Client-Side)
     // ========================================================================
+    // CAMERA & ATTACHMENT OCR (Unified Gemini Vision Client-Side)
+    // ========================================================================
     function setupCameraAndAttachments() {
       cameraBtn.addEventListener('click', () => {
-        if (!GEMINI_API_KEY) { showToast('Settings me Gemini Key dalein!', '⚠️'); settingsModal.classList.add('active'); return; }
-        cameraFileInput.click();
+        ensureGeminiKey(() => cameraFileInput.click());
       });
 
       attachmentBtn.addEventListener('click', () => {
-        if (!GEMINI_API_KEY) { showToast('Settings me Gemini Key dalein!', '⚠️'); settingsModal.classList.add('active'); return; }
-        attachmentFileInput.click();
+        ensureGeminiKey(() => attachmentFileInput.click());
       });
 
-      cameraFileInput.addEventListener('change', (e) => handleImageUpload(e.target.files[0], 'camera'));
-      attachmentFileInput.addEventListener('change', (e) => handleImageUpload(e.target.files[0], 'attachment'));
+      cameraFileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          handleImageUpload(e.target.files[0], 'camera');
+        }
+        e.target.value = '';
+      });
+
+      attachmentFileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          handleImageUpload(e.target.files[0], 'attachment');
+        }
+        e.target.value = '';
+      });
+    }
+
+    function ensureGeminiKey(onSuccess) {
+      if (!GEMINI_API_KEY) {
+        const inputKey = document.getElementById('geminiApiKeyInput')?.value?.trim();
+        if (inputKey) {
+          GEMINI_API_KEY = inputKey;
+          localStorage.setItem('GEMINI_CLIENT_API_KEY', GEMINI_API_KEY);
+        } else if (cachedMgmtData && cachedMgmtData.clientApiKey) {
+          GEMINI_API_KEY = cachedMgmtData.clientApiKey;
+          localStorage.setItem('GEMINI_CLIENT_API_KEY', GEMINI_API_KEY);
+        }
+      }
+
+      if (!GEMINI_API_KEY) {
+        appendMessage('assistant', `⚠️ <b>Gemini API Key Missing:</b> Photo/Screenshot analyze karne ke liye <b>Settings ⚙️</b> me jakar Gemini API Key paste karein.`);
+        showToast('Settings me Gemini Key dalein!', '⚠️');
+        document.getElementById('settingsModal').classList.add('active');
+        return;
+      }
+      if (onSuccess) onSuccess();
     }
 
     async function handleImageUpload(file, source) {
@@ -1784,50 +1831,173 @@
       const thinkingMsg = chatMessages.lastElementChild;
 
       try {
-        const base64Data = await resizeAndConvertToBase64(file);
-        const isIpoMode = (currentMode === 'ipoUpdate');
-        
-        const prompt = isIpoMode ? `
-Analyze this IPO UPI mandate screenshot. Return JSON:
-{ "ipoName": "Company name", "amount": 14950, "account": "SBI/HDFC", "appNo": "", "registrar": "Link Intime/KFintech", "familyMember": "Self" }
-` : `
-Analyze this receipt or handwritten note. Return JSON array of objects:
-[{ "amount": 120, "category": "Food", "paymentMethod": "UPI", "upiApp": "GPay", "account": "SBI", "note": "Chai nashta #Office" }]
-`;
-
-        const visionUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-        const res = await fetch(visionUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: "image/jpeg", data: base64Data } }] }],
-            generationConfig: { temperature: 0.1, responseMimeType: "application/json" }
-          })
-        });
-
-        const data = await res.json();
-        thinkingMsg.remove();
-
-        if (data.candidates && data.candidates[0].content.parts[0].text) {
-          const parsed = JSON.parse(data.candidates[0].content.parts[0].text);
-          if (isIpoMode) {
-            callApi('addIPOApplication', parsed, (ipoRes) => {
-              appendMessage('assistant', `✅ <b>IPO Screenshot Detected!</b><br>${ipoRes.ipoName} (₹${ipoRes.amount}) via ${ipoRes.account} [${ipoRes.familyMember}]`);
-              showToast('IPO Logged!', '🎉');
-              refreshIPOData();
-            });
-          } else {
-            const items = Array.isArray(parsed) ? parsed : [parsed];
-            callApi('batchAddExpenses', { items: JSON.stringify(items) }, () => {
-              const summaryHtml = items.map(it => `• <b>${it.category}</b>: ₹${it.amount} (${it.note})`).join('<br>');
-              appendMessage('assistant', `✅ <b>${items.length} Kharche Save Ho Gaye!</b>`, summaryHtml, true);
-              showToast(`${items.length} logged!`, '💰');
-              refreshExpenseData();
-            });
+        // Ensure API key is loaded
+        if (!GEMINI_API_KEY) {
+          if (cachedMgmtData && cachedMgmtData.clientApiKey) {
+            GEMINI_API_KEY = cachedMgmtData.clientApiKey;
+            localStorage.setItem('GEMINI_CLIENT_API_KEY', GEMINI_API_KEY);
           }
         }
+
+        if (!GEMINI_API_KEY) {
+          if (thinkingMsg) thinkingMsg.remove();
+          appendMessage('assistant', `⚠️ <b>Gemini Key Missing:</b> Settings ⚙️ me jakar apni Gemini API Key paste karein.`);
+          document.getElementById('settingsModal').classList.add('active');
+          return;
+        }
+
+        const base64Data = await resizeAndConvertToBase64(file);
+
+        // Unified Smart Prompt: Detects BOTH IPO Mandates AND Expense Receipts automatically
+        const prompt = `
+You are an expert multimodal AI for MoneyMind finance tracker.
+Examine this image carefully (which could be an IPO UPI mandate screenshot from PhonePe, GPay, Paytm, BHIM, Bank SMS, OR a grocery bill, store receipt, restaurant receipt, or handwritten diary/expense note).
+
+Determine if this image is an IPO Mandate OR an Expense:
+
+Case 1: If this is an IPO Mandate, lien marked, fund blocking, or IPO application screenshot:
+Return JSON:
+{
+  "docType": "IPO",
+  "ipoName": "Exact Company / IPO Name (e.g. Bajaj Housing, Tata Tech)",
+  "amount": 14950,
+  "account": "Bank name (e.g. SBI, HDFC, IOB, Union Bank) or 'SBI'",
+  "appNo": "Application number if visible or ''",
+  "registrar": "Link Intime / KFintech / Bigshare",
+  "familyMember": "Holder name if visible or 'Self'"
+}
+
+Case 2: If this is an Expense, bill, receipt, or handwritten kharcha note:
+Return JSON:
+{
+  "docType": "EXPENSE",
+  "items": [
+    {
+      "amount": 120,
+      "category": "Food",
+      "paymentMethod": "UPI",
+      "upiApp": "GPay",
+      "account": "SBI",
+      "note": "Chai nashta"
+    }
+  ]
+}
+
+Return ONLY raw valid JSON without markdown wrapping.
+`;
+
+        const modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-flash'];
+        let visionResultText = null;
+        let lastVisionError = null;
+
+        for (const model of modelsToTry) {
+          try {
+            const visionUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+            const res = await fetch(visionUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{
+                  parts: [
+                    {
+                      inlineData: {
+                        mimeType: "image/jpeg",
+                        data: base64Data
+                      }
+                    },
+                    {
+                      text: prompt
+                    }
+                  ]
+                }],
+                generationConfig: {
+                  temperature: 0.1,
+                  responseMimeType: "application/json"
+                }
+              })
+            });
+
+            const data = await res.json();
+            if (!res.ok || data.error) {
+              const errMsg = data.error ? data.error.message : `HTTP ${res.status}`;
+              console.warn(`Vision model ${model} failed:`, errMsg);
+              lastVisionError = errMsg;
+              continue;
+            }
+
+            if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+              visionResultText = data.candidates[0].content.parts[0].text;
+              break;
+            }
+          } catch (fetchErr) {
+            console.warn(`Fetch error with ${model}:`, fetchErr);
+            lastVisionError = fetchErr.message;
+          }
+        }
+
+        if (thinkingMsg) thinkingMsg.remove();
+
+        if (!visionResultText) {
+          appendMessage('assistant', `❌ <b>AI Analysis Failed:</b> ${lastVisionError || 'Image analyze nahi ho saki'}.<br><small>Settings ⚙️ me Gemini API Key check karein.</small>`);
+          return;
+        }
+
+        let parsed;
+        try {
+          parsed = JSON.parse(visionResultText);
+        } catch (jsonErr) {
+          const clean = visionResultText.replace(/```json/gi, '').replace(/```/g, '').trim();
+          parsed = JSON.parse(clean);
+        }
+
+        const isIpo = (parsed.docType === 'IPO' || parsed.ipoName || (parsed.type && parsed.type.toUpperCase() === 'IPO'));
+
+        if (isIpo) {
+          const ipoPayload = {
+            ipoName: parsed.ipoName || "New IPO Mandate",
+            amount: parseFloat(parsed.amount) || 14950,
+            account: parsed.account || "SBI",
+            appNo: parsed.appNo || "",
+            registrar: parsed.registrar || "Link Intime",
+            familyMember: parsed.familyMember || "Self"
+          };
+
+          callApi('addIPOApplication', ipoPayload, (ipoRes) => {
+            appendMessage('assistant', `📈 <b>IPO Screenshot Auto-Detected & Saved!</b><br>• <b>Company:</b> ${ipoPayload.ipoName}<br>• <b>Blocked Amount:</b> ₹${ipoPayload.amount.toLocaleString('en-IN')}<br>• <b>Account:</b> ${ipoPayload.account} (${ipoPayload.familyMember})<br>• <b>Registrar:</b> ${ipoPayload.registrar}`);
+            showToast('IPO Mandate Logged!', '🎉');
+            refreshIPOData();
+          }, (apiErr) => {
+            appendMessage('assistant', `⚠️ IPO detect hua (${ipoPayload.ipoName}) par sheet me save nahi ho saka: ${apiErr.message}`);
+          });
+
+        } else {
+          const rawItems = parsed.items || (Array.isArray(parsed) ? parsed : [parsed]);
+          const items = rawItems.map(it => ({
+            amount: parseFloat(it.amount) || 0,
+            category: it.category || "Other",
+            paymentMethod: it.paymentMethod || "UPI",
+            upiApp: it.upiApp || "GPay",
+            account: it.account || "SBI",
+            note: it.note || "Photo OCR Receipt"
+          })).filter(it => it.amount > 0);
+
+          if (items.length === 0) {
+            appendMessage('assistant', `⚠️ Photo me koi clear amount ya hisaab nahi mila. Kripya saaf photo upload karein.`);
+            return;
+          }
+
+          callApi('batchAddExpenses', { items: JSON.stringify(items) }, (expRes) => {
+            const summaryHtml = items.map(it => `• <b>${it.category}</b>: ₹${it.amount} (${it.note}) [${it.account}]`).join('<br>');
+            appendMessage('assistant', `✅ <b>${items.length} Kharcha Auto-Detected & Saved!</b>`, summaryHtml, true);
+            showToast(`${items.length} expenses logged!`, '💰');
+            refreshExpenseData();
+          }, (apiErr) => {
+            appendMessage('assistant', `⚠️ Kharcha parse ho gaya par sheet me save nahi ho saka: ${apiErr.message}`);
+          });
+        }
+
       } catch (err) {
-        thinkingMsg.remove();
+        if (thinkingMsg) thinkingMsg.remove();
         appendMessage('assistant', `❌ Error: ${err.message}`);
       }
     }
@@ -2105,6 +2275,7 @@ Analyze this receipt or handwritten note. Return JSON array of objects:
     function refreshAllData() {
       refreshExpenseData();
       refreshIPOData();
+      loadManagementHubData();
     }
 
     // ========================================================================
