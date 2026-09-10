@@ -1,0 +1,2423 @@
+<!DOCTYPE html>
+<html lang="hi-IN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>MoneyMind - Smart Personal Finance & IPO Tracker</title>
+
+  <!-- PWA & Mobile Web App Meta (Android & iOS) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MoneyMind">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#08090b">
+
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="data:application/manifest+json;utf-8,%7B%22name%22%3A%22MoneyMind%22%2C%22short_name%22%3A%22MoneyMind%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%2308090b%22%2C%22theme_color%22%3A%22%2308090b%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20512%20512'%3E%3Crect%20width%3D'512'%20height%3D'512'%20rx%3D'128'%20fill%3D'%2308090b'%2F%3E%3Ccircle%20cx%3D'256'%20cy%3D'256'%20r%3D'210'%20fill%3D'%230f141c'%20stroke%3D'%2310b981'%20stroke-width%3D'16'%2F%3E%3Ctext%20x%3D'50%25'%20y%3D'62%25'%20dominant-baseline%3D'middle'%20text-anchor%3D'middle'%20font-family%3D'sans-serif'%20font-weight%3D'900'%20font-size%3D'220'%20fill%3D'%2334d399'%3EMM%3C%2Ftext%3E%3C%2Fsvg%3E%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='128' fill='%2308090b'/><circle cx='256' cy='256' r='210' fill='%230f141c' stroke='%2310b981' stroke-width='16'/><text x='50%25' y='62%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-weight='900' font-size='220' fill='%2334d399'>MM</text></svg>">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%2308090b' stroke='%2310b981' stroke-width='4'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='%2334d399' font-family='sans-serif' font-weight='bold'>MM</text></svg>">
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #08090b;
+      --bg-card: rgba(18, 22, 30, 0.75);
+      --bg-card-hover: rgba(24, 30, 42, 0.85);
+      --bg-input: #12161f;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(52, 211, 153, 0.35);
+      --accent: #34d399;
+      --accent-dark: #059669;
+      --accent-glow: rgba(52, 211, 153, 0.18);
+      --accent-blue: #38bdf8;
+      --accent-purple: #c084fc;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --danger: #f87171;
+      --warning: #fbbf24;
+      --radius: 18px;
+      --radius-sm: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Luxury Radial Mesh Background Glows */
+    .ambient-glow-1 {
+      position: fixed;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.09) 0%, rgba(8, 9, 11, 0) 70%);
+      top: -120px;
+      right: -120px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .ambient-glow-2 {
+      position: fixed;
+      width: 520px;
+      height: 520px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.06) 0%, rgba(8, 9, 11, 0) 70%);
+      bottom: -160px;
+      left: -160px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 680px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    header {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8, 9, 11, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-logo {
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      background: linear-gradient(135deg, #111622 0%, #1a2233 100%);
+      border: 1px solid var(--border-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      font-weight: 900;
+      font-size: 15px;
+      letter-spacing: -0.5px;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+
+    .brand-text h1 {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #fff;
+    }
+
+    .status-badge {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    .creator-badge {
+      font-size: 10px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 500;
+    }
+
+    .creator-badge strong {
+      color: #e2e8f0;
+      font-weight: 600;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .icon-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(8px);
+    }
+
+    .icon-btn:hover, .icon-btn.active {
+      background: var(--bg-input);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Navigation Tabs */
+    .nav-tabs {
+      display: flex;
+      background: rgba(14, 18, 26, 0.7);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 14px;
+      gap: 8px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 8px 12px;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--bg-card);
+      border-color: rgba(255, 255, 255, 0.1);
+      color: var(--accent);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .view-container {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .view {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .view.active { display: flex; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Chat View */
+    #chatView {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .message {
+      display: flex;
+      gap: 10px;
+      max-width: 88%;
+      animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user { align-self: flex-end; flex-direction: row-reverse; }
+    .message.assistant { align-self: flex-start; }
+
+    .msg-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .message.user .msg-avatar { background: linear-gradient(135deg, #10b981, #047857); color: #fff; }
+    .message.assistant .msg-avatar { background: var(--bg-card); border: 1px solid var(--border); color: var(--accent); }
+
+    .msg-bubble {
+      padding: 12px 15px;
+      border-radius: 16px;
+      font-size: 13.5px;
+      line-height: 1.5;
+      position: relative;
+    }
+
+    .message.user .msg-bubble {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 4px 14px rgba(5, 150, 105, 0.25);
+    }
+
+    .message.assistant .msg-bubble {
+      background: var(--bg-card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+      backdrop-filter: blur(12px);
+    }
+
+    .msg-bubble .card-preview {
+      margin-top: 10px;
+      padding: 10px;
+      background: rgba(0,0,0,0.35);
+      border-radius: 10px;
+      border-left: 3px solid var(--accent);
+      font-size: 12.5px;
+    }
+
+    .msg-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 6px;
+      gap: 10px;
+    }
+
+    .undo-btn {
+      background: rgba(248, 113, 113, 0.15);
+      color: #fca5a5;
+      border: 1px solid rgba(248, 113, 113, 0.3);
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-size: 10.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .undo-btn:hover { background: rgba(248, 113, 113, 0.3); }
+    .msg-time { font-size: 10px; color: var(--text-dim); }
+
+    .mode-chips-container {
+      padding: 8px 16px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+      border-top: 1px solid var(--border);
+      background: rgba(8, 9, 11, 0.7);
+      scrollbar-width: none;
+    }
+
+    .mode-chips-container::-webkit-scrollbar { display: none; }
+
+    .mode-chip {
+      padding: 6px 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .mode-chip:hover, .mode-chip.active {
+      background: var(--bg-input);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .step-tray {
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      padding: 14px 16px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .step-tray.active { display: flex; }
+
+    .step-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .step-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .step-chip {
+      padding: 6px 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 11.5px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    .step-chip:hover, .step-chip.selected {
+      background: var(--accent);
+      color: #0a0b0d;
+      border-color: var(--accent);
+      font-weight: 700;
+    }
+
+    .step-input-group { display: flex; gap: 8px; }
+
+    .step-input {
+      flex: 1;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+    }
+
+    /* Input Bar */
+    .chat-input-bar {
+      padding: 10px 14px 14px 14px;
+      background: rgba(8, 9, 11, 0.95);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .input-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 4px 12px;
+      min-width: 0;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+
+    .chat-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 13.5px;
+      padding: 7px 2px;
+      min-width: 0;
+    }
+
+    .tool-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 15px;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+
+    .tool-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .mic-btn.recording {
+      background: var(--danger);
+      color: #fff;
+      border-color: var(--danger);
+      animation: pulse 1.2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.7); }
+      70% { transform: scale(1.08); box-shadow: 0 0 0 10px rgba(248, 113, 113, 0); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(248, 113, 113, 0); }
+    }
+
+    .send-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #08090b;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    /* Dashboard & Cards */
+    .dashboard-content {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(14px);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--card-accent, var(--accent)), transparent);
+    }
+
+    .stat-label { font-size: 11.5px; color: var(--text-muted); font-weight: 500; }
+    .stat-value { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: var(--text); }
+    .stat-sub { font-size: 11px; color: var(--text-dim); }
+
+    .chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      backdrop-filter: blur(14px);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chart-box { position: relative; width: 100%; height: 220px; }
+
+    /* Stuck Alert Banner */
+    .stuck-alert-banner {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-size: 12.5px;
+      color: #fca5a5;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .stuck-badge {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-size: 10.5px;
+      font-weight: 700;
+      animation: pulse 1.5s infinite;
+    }
+
+    /* Family Luck Cards */
+    .family-luck-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+      gap: 10px;
+    }
+
+    .family-card {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .family-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .luck-winrate { font-size: 10.5px; padding: 1px 6px; border-radius: 4px; font-weight: 700; }
+    .winrate-high { background: rgba(52, 211, 153, 0.2); color: #34d399; }
+    .winrate-mid { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+    .winrate-low { background: rgba(148, 163, 184, 0.2); color: #94a3b8; }
+    .family-stats-sub { font-size: 11px; color: var(--text-dim); }
+
+    /* Budgets Bars */
+    .budget-item { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    .budget-info { display: flex; justify-content: space-between; font-size: 12px; }
+    .budget-progress-track { width: 100%; height: 8px; background: var(--bg-input); border-radius: 4px; overflow: hidden; }
+    .budget-progress-bar { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+    .bar-normal { background: var(--accent); }
+    .bar-warning { background: var(--warning); }
+    .bar-exceeded { background: var(--danger); }
+
+    /* Transactions */
+    .trans-list { display: flex; flex-direction: column; gap: 8px; }
+    .trans-item {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .trans-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .trans-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+
+    .trans-info { min-width: 0; }
+    .trans-title { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .trans-meta { font-size: 11px; color: var(--text-dim); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .trans-badge { background: rgba(52, 211, 153, 0.12); color: var(--accent); padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+    .trans-amount { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; }
+
+    .btn-action-row { display: flex; gap: 8px; }
+    .btn-full {
+      flex: 1; padding: 10px 14px; border-radius: var(--radius-sm);
+      font-size: 12.5px; font-weight: 600; display: flex;
+      align-items: center; justify-content: center; gap: 6px;
+      cursor: pointer; border: 1px solid var(--border);
+      background: var(--bg-card); color: var(--text);
+    }
+    .btn-full:hover { background: var(--bg-input); border-color: var(--accent); color: var(--accent); }
+    .btn-primary { background: var(--accent); color: #08090b; border-color: var(--accent); font-weight: 700; }
+    .btn-primary:hover { background: var(--accent-dark); }
+
+    /* Bank Pills */
+    .account-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+    .acc-pill { background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; display: flex; flex-direction: column; gap: 2px; }
+    .acc-name { font-size: 11px; color: var(--text-muted); font-weight: 600; display: flex; justify-content: space-between; }
+    .acc-amount { font-size: 15px; font-weight: 800; color: var(--accent-blue); }
+
+    .status-pill { padding: 2px 7px; border-radius: 6px; font-size: 10.5px; font-weight: 700; }
+    .status-applied { background: rgba(56, 189, 248, 0.15); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.3); }
+    .status-allotted { background: rgba(52, 211, 153, 0.15); color: #6ee7b7; border: 1px solid rgba(52, 211, 153, 0.3); }
+    .status-refunded { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); }
+    .badge-allotment { background: rgba(192, 132, 252, 0.15); color: #d8b4fe; border: 1px solid rgba(192, 132, 252, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px; }
+    .btn-registrar { background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; padding: 3px 8px; font-size: 10.5px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 3px; cursor: pointer; }
+
+    /* Modals & Hub */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(10px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal-box {
+      background: #0e121a;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 520px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.6);
+      max-height: 88vh;
+      overflow-y: auto;
+    }
+
+    .modal-header { display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h3 { font-size: 16px; font-weight: 800; letter-spacing: -0.3px; }
+
+    /* Hub Sub-Tabs */
+    .hub-tabs {
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .hub-tabs::-webkit-scrollbar { display: none; }
+
+    .hub-tab-btn {
+      padding: 6px 11px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .hub-tab-btn.active {
+      background: var(--accent);
+      color: #08090b;
+      border-color: var(--accent);
+      font-weight: 700;
+    }
+
+    .hub-content { display: none; flex-direction: column; gap: 10px; }
+    .hub-content.active { display: flex; }
+
+    .hub-list-item {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 9px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+    .form-control {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      color: #fff;
+      font-size: 13.5px;
+      outline: none;
+    }
+    .form-control:focus { border-color: var(--accent); }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 80px; left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #141923;
+      border: 1px solid var(--border-accent);
+      color: var(--text);
+      padding: 10px 18px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+      z-index: 200;
+      opacity: 0;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    .config-banner {
+      background: rgba(251, 191, 36, 0.1);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      margin: 10px 16px 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 12px;
+      color: #fef3c7;
+    }
+
+    .config-banner button {
+      background: var(--warning);
+      color: #08090b;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-glow-1"></div>
+  <div class="ambient-glow-2"></div>
+
+  <!-- Hidden Camera & Attachment File Inputs -->
+  <input type="file" id="cameraFileInput" accept="image/*" capture="environment" style="display: none;">
+  <input type="file" id="attachmentFileInput" accept="image/*" style="display: none;">
+
+  <div class="app-container">
+    <!-- Header with MoneyMind Branding & Subtle Credit -->
+    <header>
+      <div class="brand">
+        <div class="brand-logo">MM</div>
+        <div class="brand-text">
+          <h1>MoneyMind <span class="status-badge" id="apiStatusDot" title="Online"></span></h1>
+          <p class="creator-badge">Made with ❤️ by <strong>Chitranshu Shrivastava</strong></p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="openHubBtn" title="Control Hub (Banks, PANs, Gmails, Budgets)">🎛️</button>
+        <button class="icon-btn" id="refreshBtn" title="Refresh Data">🔄</button>
+        <button class="icon-btn" id="settingsBtn" title="API Settings">⚙️</button>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+      <button class="tab-btn active" data-target="chatView">💬 Chat / AI</button>
+      <button class="tab-btn" data-target="expenseView">📊 Expenses</button>
+      <button class="tab-btn" data-target="ipoView">📈 IPO Tracker</button>
+    </div>
+
+    <!-- URL Banner -->
+    <div class="config-banner" id="configBanner" style="display: none;">
+      <span>⚠️ Google Apps Script URL set karein taaki Sheet connect ho sake.</span>
+      <button id="openConfigBtn">Set URL</button>
+    </div>
+
+    <!-- Views Container -->
+    <div class="view-container">
+      
+      <!-- ====================================================================
+           1. CHAT VIEW
+           ==================================================================== -->
+      <section class="view active" id="chatView">
+        <div class="chat-messages" id="chatMessages">
+          <div class="message assistant">
+            <div class="msg-avatar">🤖</div>
+            <div class="msg-bubble">
+              Ram Ram sa! 🙏 Main aapka <b>MoneyMind</b> AI assistant hoon.
+              <br><br>
+              Aap Hinglish ya Hindi me bol ya likh sakte hain:
+              <br>• 🎛️ Top me <b>Hub</b> se Bank, PAN card aur Gmail sync karein
+              <br>• 📸 <b>Camera</b> se likhe hisaab ya bill ki photo bhejein
+              <br>• 📎 <b>Screenshot</b> se PhonePe/GPay IPO mandate verify karein
+              <br>• 🎙️ <i>"Chai nashta 120 GPay SBI #Office"</i>
+              <span class="msg-time">Just now</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode Chips -->
+        <div class="mode-chips-container">
+          <button class="mode-chip active" data-mode="quickAdd">✨ AI Quick Add</button>
+          <button class="mode-chip" data-mode="askAI">🔍 Ask a Question</button>
+          <button class="mode-chip" data-mode="ipoUpdate">📈 IPO Update</button>
+          <button class="mode-chip" data-mode="stepByStep">🔘 Step-by-Step</button>
+        </div>
+
+        <!-- Step-by-Step Tray -->
+        <div class="step-tray" id="stepTray">
+          <div class="step-title">
+            <span id="stepProgressLabel">Step 1: Category Chuniye</span>
+            <button class="icon-btn" id="closeStepBtn" style="width:24px;height:24px;font-size:12px;">✕</button>
+          </div>
+          <div class="step-chips" id="stepChipsContainer"></div>
+          <div class="step-input-group" id="stepInputGroup" style="display: none;">
+            <input type="text" class="step-input" id="stepCustomInput" placeholder="Amount / Note">
+            <button class="btn-full btn-primary" id="stepNextBtn" style="flex:0 0 70px;">Next</button>
+          </div>
+        </div>
+
+        <!-- Chat Input Bar -->
+        <div class="chat-input-bar">
+          <button class="tool-btn" id="cameraBtn" title="Photo Click (Hisaab / Bill)">📷</button>
+          <button class="tool-btn" id="attachmentBtn" title="Attach Screenshot (IPO / Bill)">📎</button>
+          <button class="tool-btn mic-btn" id="micBtn" title="Voice Input (Hindi/Hinglish)">🎙️</button>
+          <div class="input-wrapper">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Hinglish me bole ya likhe..." autocomplete="off">
+          </div>
+          <button class="send-btn" id="sendBtn" title="Send">➤</button>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           2. EXPENSE DASHBOARD VIEW
+           ==================================================================== -->
+      <section class="view" id="expenseView">
+        <div class="dashboard-content">
+          <!-- Stats Grid -->
+          <div class="stats-grid">
+            <div class="stat-card" style="--card-accent: #34d399;">
+              <div class="stat-label">📅 Aaj Ka Kharcha</div>
+              <div class="stat-value" id="statTodayTotal">₹0</div>
+              <div class="stat-sub">Today's total</div>
+            </div>
+            <div class="stat-card" style="--card-accent: #38bdf8;">
+              <div class="stat-label">🗓️ Is Month Total</div>
+              <div class="stat-value" id="statMonthTotal">₹0</div>
+              <div class="stat-sub">Current month</div>
+            </div>
+            <div class="stat-card" style="--card-accent: #fbbf24;">
+              <div class="stat-label">🏆 Top Category</div>
+              <div class="stat-value" id="statTopCategory" style="font-size: 16px;">None</div>
+              <div class="stat-sub" id="statTopCategoryAmount">₹0</div>
+            </div>
+            <div class="stat-card" style="--card-accent: #c084fc;">
+              <div class="stat-label">🧾 Transactions</div>
+              <div class="stat-value" id="statTransCount">0</div>
+              <div class="stat-sub">Total logged</div>
+            </div>
+          </div>
+
+          <!-- Category Budgets -->
+          <div class="chart-card">
+            <div class="card-header">
+              <span class="card-title">🎯 Monthly Budgets</span>
+              <button class="step-chip" onclick="openHubWithTab('hubTabBudgets')" style="padding:2px 8px;font-size:11px;">Manage ⚙️</button>
+            </div>
+            <div id="budgetBarsContainer">
+              <div style="color:var(--text-dim);font-size:12px;padding:10px;">Loading budgets...</div>
+            </div>
+          </div>
+
+          <!-- Category Chart -->
+          <div class="chart-card">
+            <div class="card-header">
+              <span class="card-title">🍰 Category Breakdown</span>
+              <span style="font-size: 11px; color: var(--text-dim);">This Month</span>
+            </div>
+            <div class="chart-box">
+              <canvas id="categoryChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Trend Chart -->
+          <div class="chart-card">
+            <div class="card-header">
+              <span class="card-title">📊 Last 6 Months Trend</span>
+            </div>
+            <div class="chart-box">
+              <canvas id="trendChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Recent Transactions -->
+          <div class="chart-card">
+            <div class="card-header">
+              <span class="card-title">🕒 Recent Transactions</span>
+              <span style="font-size: 11px; color: var(--text-dim);" id="recentCountLabel">0 items</span>
+            </div>
+            <div class="trans-list" id="recentExpensesList">
+              <div style="text-align: center; color: var(--text-dim); padding: 20px; font-size: 12px;">No transactions found.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           3. IPO TRACKER VIEW
+           ==================================================================== -->
+      <section class="view" id="ipoView">
+        <div class="dashboard-content">
+          <!-- Stuck Mandates Alert Banner -->
+          <div class="stuck-alert-banner" id="stuckAlertBanner">
+            <span style="font-size: 18px;">⚠️</span>
+            <div style="flex:1;">
+              <strong>Paisa Fasa To Nahi? (Stuck Mandate Alert)</strong>
+              <div id="stuckAlertDetails" style="font-size: 11.5px; margin-top:2px;">0 mandates >7 days old.</div>
+            </div>
+          </div>
+
+          <!-- IPO Stats Grid -->
+          <div class="stats-grid">
+            <div class="stat-card" style="--card-accent: #38bdf8;">
+              <div class="stat-label">🔒 Currently Blocked</div>
+              <div class="stat-value" id="ipoBlockedTotal">₹0</div>
+              <div class="stat-sub">Active UPI Mandates</div>
+            </div>
+            <div class="stat-card" style="--card-accent: #34d399;">
+              <div class="stat-label">🎉 Total Allotted</div>
+              <div class="stat-value" id="ipoAllottedTotal">₹0</div>
+              <div class="stat-sub">Shares won</div>
+            </div>
+            <div class="stat-card" style="--card-accent: #94a3b8;">
+              <div class="stat-label">🔄 Total Refunded</div>
+              <div class="stat-value" id="ipoRefundedTotal">₹0</div>
+              <div class="stat-sub">Lien unblocked</div>
+            </div>
+            <div class="stat-card" style="--card-accent: #c084fc;">
+              <div class="stat-label">📋 Active Count</div>
+              <div class="stat-value" id="ipoPendingCount">0</div>
+              <div class="stat-sub">Pending IPOs</div>
+            </div>
+          </div>
+
+          <!-- Family Luck Score Grid -->
+          <div class="chart-card">
+            <div class="card-header">
+              <span class="card-title">👨‍👩‍👦 Family Allotment Luck Score</span>
+              <button class="step-chip" onclick="openHubWithTab('hubTabPans')" style="padding:2px 8px;font-size:11px;">Manage PANs 🆔</button>
+            </div>
+            <div class="family-luck-grid" id="familyLuckGrid">
+              <div style="color:var(--text-dim);font-size:12px;">Loading family stats...</div>
+            </div>
+          </div>
+
+          <!-- Bank-wise Blocked Amounts -->
+          <div class="chart-card">
+            <div class="card-header">
+              <span class="card-title">🏦 Blocked Money by Bank</span>
+              <button class="step-chip" onclick="openHubWithTab('hubTabBanks')" style="padding:2px 8px;font-size:11px;">+ Bank</button>
+            </div>
+            <div class="account-cards" id="ipoBankCards">
+              <div class="acc-pill"><span class="acc-name">SBI</span><span class="acc-amount">₹0</span></div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="btn-action-row">
+            <button class="btn-full btn-primary" id="openAddIpoModalBtn">
+              <span>+ Apply IPO</span>
+            </button>
+            <button class="btn-full" id="openSmsLearnerBtn">
+              <span>🧠 Teach SMS</span>
+            </button>
+          </div>
+
+          <!-- Active Mandates -->
+          <div class="chart-card">
+            <div class="card-header">
+              <span class="card-title">⏳ Active IPO Mandates</span>
+            </div>
+            <div class="trans-list" id="ipoActiveList">
+              <div style="text-align: center; color: var(--text-dim); padding: 20px; font-size: 12px;">Filhal koi active mandate nahi hai.</div>
+            </div>
+          </div>
+
+          <!-- History -->
+          <div class="chart-card">
+            <div class="card-header">
+              <span class="card-title">📜 Complete IPO History</span>
+            </div>
+            <div class="trans-list" id="ipoHistoryList">
+              <div style="text-align: center; color: var(--text-dim); padding: 20px; font-size: 12px;">No historical records found.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       DYNAMIC MANAGEMENT HUB MODAL (PANs, Gmails, Banks, Budgets, AI Rules)
+       ======================================================================== -->
+  <div class="modal-overlay" id="managementHubModal">
+    <div class="modal-box" style="max-width: 540px;">
+      <div class="modal-header">
+        <div>
+          <h3>🎛️ MoneyMind Control Hub</h3>
+          <span style="font-size:11px;color:var(--text-muted);">Self-Service Management Center</span>
+        </div>
+        <button class="icon-btn" id="closeHubBtn" style="width:28px;height:28px;">✕</button>
+      </div>
+
+      <!-- Hub Sub-Tabs -->
+      <div class="hub-tabs">
+        <button class="hub-tab-btn active" data-tab="hubTabPans">🆔 PAN Cards & Demats</button>
+        <button class="hub-tab-btn" data-tab="hubTabGmails">📧 Connected Gmails</button>
+        <button class="hub-tab-btn" data-tab="hubTabBanks">🏦 Banks & Accounts</button>
+        <button class="hub-tab-btn" data-tab="hubTabBudgets">🏷️ Categories</button>
+        <button class="hub-tab-btn" data-tab="hubTabAiRules">🧠 AI Rules</button>
+        <button class="hub-tab-btn" data-tab="hubTabAlerts">⚙️ Settings</button>
+      </div>
+
+      <!-- TAB 1: 🆔 PAN CARDS & FAMILY DEMATS -->
+      <div class="hub-content active" id="hubTabPans">
+        <div style="font-size:11.5px; color:var(--text-muted);">
+          Family members ke PAN numbers aur linked demat accounts ko yahan manage karein taaki IPO tracking PAN-wise ho sake.
+        </div>
+        <div id="hubPansList" style="display:flex;flex-direction:column;gap:6px;max-height:160px;overflow-y:auto;"></div>
+
+        <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;display:flex;flex-direction:column;gap:8px;">
+          <span style="font-size:12px;font-weight:700;color:var(--accent);">+ Naya PAN Card & Profile Jodein</span>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <input type="text" class="form-control" id="hubNewPanMember" placeholder="Holder (e.g. Mummy / Papa)">
+            <input type="text" class="form-control" id="hubNewPanNumber" placeholder="PAN (e.g. ABCDE1234F)" maxlength="10" style="text-transform:uppercase;">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <input type="text" class="form-control" id="hubNewPanBroker" placeholder="Broker (Zerodha/Groww/Angel)">
+            <input type="text" class="form-control" id="hubNewPanBank" placeholder="Primary Bank (e.g. SBI/IOB)">
+          </div>
+          <button class="btn-full btn-primary" id="hubAddPanBtn">Save PAN Profile</button>
+        </div>
+      </div>
+
+      <!-- TAB 2: 📧 CONNECTED GMAIL IDS -->
+      <div class="hub-content" id="hubTabGmails">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-size:11.5px; color:var(--text-muted);">
+            Linked Family Gmail IDs jo auto-scan hoti hain:
+          </div>
+          <button class="step-chip" id="hubScanGmailNowBtn" style="padding:3px 8px;font-size:10.5px;">Scan Inboxes Now 🔄</button>
+        </div>
+        <div id="hubGmailsList" style="display:flex;flex-direction:column;gap:6px;max-height:150px;overflow-y:auto;"></div>
+
+        <!-- 1-Click Copy Forwarding Rule Box -->
+        <div style="background:rgba(56, 189, 248, 0.08);border:1px solid rgba(56, 189, 248, 0.25);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <strong style="font-size:11.5px;color:var(--accent-blue);">📋 Gmail Auto-Forwarding Rule</strong>
+            <button class="undo-btn" id="copyForwardingQueryBtn" style="color:#38bdf8;border-color:rgba(56,189,248,0.4);background:rgba(56,189,248,0.15);">Copy Query</button>
+          </div>
+          <div style="font-size:10.5px;color:var(--text-dim);">
+            Family member ki Gmail Settings me filter banakar yeh query daal kar apni primary email par forward karein.
+          </div>
+        </div>
+
+        <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;display:flex;flex-direction:column;gap:8px;">
+          <span style="font-size:12px;font-weight:700;color:var(--accent);">+ Nayi Family Gmail ID Link Karein</span>
+          <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:6px;">
+            <input type="email" class="form-control" id="hubNewGmailEmail" placeholder="family.member@gmail.com">
+            <input type="text" class="form-control" id="hubNewGmailHolder" placeholder="Holder (e.g. Mummy)">
+          </div>
+          <button class="btn-full btn-primary" id="hubAddGmailBtn">Save Gmail Connection</button>
+        </div>
+      </div>
+
+      <!-- TAB 3: 🏦 BANKS & ACCOUNTS -->
+      <div class="hub-content" id="hubTabBanks">
+        <div style="font-size:11.5px; color:var(--text-muted);">
+          Bank accounts add karein. Naya bank jodte hi AI aur dropdowns me turant dikhega:
+        </div>
+        <div id="hubBanksList" style="display:flex;flex-direction:column;gap:6px;max-height:160px;overflow-y:auto;"></div>
+
+        <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;display:flex;flex-direction:column;gap:8px;">
+          <span style="font-size:12px;font-weight:700;color:var(--accent);">+ Naya Bank Account Jodein</span>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <input type="text" class="form-control" id="hubNewBankName" placeholder="Bank Name (e.g. HDFC)">
+            <input type="text" class="form-control" id="hubNewBankMember" placeholder="Holder (Mummy / Self)">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <input type="text" class="form-control" id="hubNewBankUpi" placeholder="UPI ID (user@okhdfc)">
+            <input type="text" class="form-control" id="hubNewBankAcct" placeholder="Masked A/c (XX7890)">
+          </div>
+          <button class="btn-full btn-primary" id="hubAddBankBtn">Save New Bank</button>
+        </div>
+      </div>
+
+      <!-- TAB 4: 🏷️ CATEGORIES & LIMITS -->
+      <div class="hub-content" id="hubTabBudgets">
+        <div style="font-size:11.5px; color:var(--text-muted);">Categories aur unke monthly budget limits ko yahan se manage karein.</div>
+        <div id="hubCategoriesList" style="display:flex;flex-direction:column;gap:6px;max-height:160px;overflow-y:auto;"></div>
+
+        <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;display:flex;flex-direction:column;gap:8px;">
+          <span style="font-size:12px;font-weight:700;color:var(--accent);">+ Nayi Category Jodein</span>
+          <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:6px;">
+            <input type="text" class="form-control" id="hubNewCatName" placeholder="Category Name (e.g. Medical)">
+            <input type="number" class="form-control" id="hubNewCatLimit" placeholder="Limit ₹ (e.g. 5000)">
+          </div>
+          <button class="btn-full btn-primary" id="hubAddCatBtn">Save Category</button>
+        </div>
+      </div>
+
+      <!-- TAB 5: 🧠 AI SMART RULES -->
+      <div class="hub-content" id="hubTabAiRules">
+        <div style="font-size:11.5px; color:var(--text-muted);">
+          AI ko apne personal niyam sikhayein. Gemini har baar in rules ko follow karega:
+        </div>
+        <div class="form-group">
+          <textarea class="form-control" id="hubAiRulesInput" rows="6" placeholder="E.g.
+1. Swiggy ya Zomato hamesha Food category me daalna
+2. Hamesha short aur crisp Hinglish me bolna
+3. Jaipur ke areas (Mansarovar, Raja Park) note me pehchanna"></textarea>
+        </div>
+        <button class="btn-full btn-primary" id="hubSaveAiRulesBtn">Save AI Rules</button>
+      </div>
+
+      <!-- TAB 6: ⚙️ SETTINGS & ALERTS -->
+      <div class="hub-content" id="hubTabAlerts">
+        <div class="form-group">
+          <label>Mandate Stuck Days Threshold (Paisa fasa hone ki warning):</label>
+          <input type="number" class="form-control" id="hubStuckDaysInput" placeholder="7">
+        </div>
+        <div class="form-group">
+          <label>Budget Warning Alert (%):</label>
+          <input type="number" class="form-control" id="hubBudgetAlertPctInput" placeholder="80">
+        </div>
+        <div class="form-group">
+          <label>Aapka Naam (Greeting ke liye):</label>
+          <input type="text" class="form-control" id="hubUserNameInput" placeholder="Chitranshu">
+        </div>
+        <button class="btn-full btn-primary" id="hubSaveConfigBtn" style="margin-top:4px;">Save Alert Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       SMART SMS TEMPLATE LEARNER MODAL
+       ======================================================================== -->
+  <div class="modal-overlay" id="smsLearnerModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>🧠 Teach AI New Bank SMS</h3>
+        <button class="icon-btn" id="closeSmsLearnerBtn" style="width:28px;height:28px;">✕</button>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);">
+        Kisi bhi naye bank ka SMS yahan paste karein. AI pattern seekhkar `UPI Map` me auto-save kar lega!
+      </div>
+      <div class="form-group">
+        <label>Bank SMS Text:</label>
+        <textarea class="form-control" id="smsLearnerText" rows="4" placeholder="Dear Customer, Mandate of INR 14,950 for Tata Tech is created on your Canara Bank A/c *4321..."></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        <div class="form-group">
+          <label>Bank Name (optional):</label>
+          <input type="text" class="form-control" id="smsLearnerBank" placeholder="e.g. Canara Bank">
+        </div>
+        <div class="form-group">
+          <label>Family Member:</label>
+          <select class="form-control" id="smsLearnerMember">
+            <option value="Self">Self</option>
+            <option value="Mummy">Mummy</option>
+            <option value="Papa">Papa</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-full btn-primary" id="submitSmsLearnBtn">Train AI & Save Pattern</button>
+    </div>
+  </div>
+
+  <!-- Apply IPO Modal -->
+  <div class="modal-overlay" id="addIpoModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>📈 Apply for IPO</h3>
+        <button class="icon-btn" id="closeAddIpoBtn" style="width:28px;height:28px;">✕</button>
+      </div>
+      <div class="form-group">
+        <label>IPO Company Name:</label>
+        <input type="text" class="form-control" id="modalIpoName" placeholder="e.g. Tata Tech, Bajaj Housing">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        <div class="form-group">
+          <label>Bank Account:</label>
+          <select class="form-control" id="modalIpoAccount"></select>
+        </div>
+        <div class="form-group">
+          <label>Family Member (PAN):</label>
+          <select class="form-control" id="modalIpoMember">
+            <option value="Self">Self</option>
+            <option value="Mummy">Mummy</option>
+            <option value="Papa">Papa</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Mandate Amount (₹):</label>
+        <input type="number" class="form-control" id="modalIpoAmount" placeholder="14950">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        <div class="form-group">
+          <label>Application No (optional):</label>
+          <input type="text" class="form-control" id="modalIpoAppNo" placeholder="10098234">
+        </div>
+        <div class="form-group">
+          <label>Registrar:</label>
+          <select class="form-control" id="modalIpoRegistrar">
+            <option value="Link Intime">Link Intime</option>
+            <option value="KFintech">KFintech</option>
+            <option value="Bigshare">Bigshare</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-full btn-primary" id="submitIpoBtn">Save IPO Application</button>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <h3>⚙️ Settings</h3>
+          <span style="font-size:11px;color:var(--text-muted);">MoneyMind Configuration</span>
+        </div>
+        <button class="icon-btn" id="closeSettingsBtn" style="width:28px;height:28px;">✕</button>
+      </div>
+      <div class="form-group">
+        <label>Google Apps Script Web App URL (/exec):</label>
+        <input type="text" class="form-control" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+      </div>
+      <div class="form-group">
+        <label>Gemini API Key (Camera & Screenshot Vision):</label>
+        <input type="text" class="form-control" id="geminiApiKeyInput" placeholder="AIzaSy...">
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:10px;font-size:11.5px;color:var(--text-muted);">
+        <strong>MoneyMind v3.5</strong><br>
+        Crafted with ❤️ by Chitranshu Shrivastava. Zero-cost personal finance & multi-account IPO tracker.
+      </div>
+      <button class="btn-full btn-primary" id="saveSettingsBtn">Save Settings</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <span id="toastIcon">✅</span>
+    <span id="toastMsg">Action completed</span>
+  </div>
+
+  <!-- ========================================================================
+       JAVASCRIPT LOGIC
+       ======================================================================== -->
+  <script>
+    let SCRIPT_URL = localStorage.getItem('EXPENSE_TRACKER_SCRIPT_URL') || '';
+    let GEMINI_API_KEY = localStorage.getItem('GEMINI_CLIENT_API_KEY') || '';
+
+    let currentMode = 'quickAdd';
+    let isListening = false;
+    let recognition = null;
+    let categoryChartInstance = null;
+    let trendChartInstance = null;
+    let cachedMgmtData = null;
+
+    const FORWARDING_FILTER_QUERY = 'mandate OR "blocking of funds" OR "UPI 2.0 LIEN" OR "unblocked" OR "allotment"';
+
+    const REGISTRAR_URLS = {
+      'Link Intime': 'https://linkintime.co.in/initial_offer/public-issues.html',
+      'KFintech': 'https://kosmic.kfintech.com/ipostatus/',
+      'Bigshare': 'https://ipo.bigshareonline.com/'
+    };
+
+    const stepFlow = {
+      step: 0,
+      data: { category: '', amount: '', paymentMethod: 'UPI', upiApp: 'GPay', account: 'SBI', note: '' },
+      categories: ['Food', 'Travel', 'Bills', 'Shopping', 'Home', 'Personal', 'Other'],
+      methods: ['UPI', 'Cash', 'Card'],
+      upiApps: ['GPay', 'PhonePe', 'Paytm'],
+      accounts: ['SBI', 'IOB', 'Union Bank']
+    };
+
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const micBtn = document.getElementById('micBtn');
+    const cameraBtn = document.getElementById('cameraBtn');
+    const attachmentBtn = document.getElementById('attachmentBtn');
+    const cameraFileInput = document.getElementById('cameraFileInput');
+    const attachmentFileInput = document.getElementById('attachmentFileInput');
+    const modeChips = document.querySelectorAll('.mode-chip');
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const views = document.querySelectorAll('.view');
+    const configBanner = document.getElementById('configBanner');
+    const settingsModal = document.getElementById('settingsModal');
+    const scriptUrlInput = document.getElementById('scriptUrlInput');
+    const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMsg');
+    const toastIcon = document.getElementById('toastIcon');
+
+    // ========================================================================
+    // INITIALIZATION
+    // ========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      checkConfig();
+      initSpeechRecognition();
+      setupTabs();
+      setupModeChips();
+      setupStepFlowEvents();
+      setupModals();
+      setupCameraAndAttachments();
+      setupManagementHub();
+      setupSmsLearner();
+
+      if (SCRIPT_URL) {
+        refreshAllData();
+      }
+    });
+
+    function checkConfig() {
+      if (!SCRIPT_URL) {
+        configBanner.style.display = 'flex';
+        document.getElementById('apiStatusDot').style.background = '#f87171';
+      } else {
+        configBanner.style.display = 'none';
+        document.getElementById('apiStatusDot').style.background = '#34d399';
+      }
+    }
+
+    // ========================================================================
+    // API CLIENT (Strict GET for CORS)
+    // ========================================================================
+    async function callApi(action, params = {}, onSuccess, onError) {
+      if (!SCRIPT_URL) {
+        showToast('Apps Script URL set karein!', '⚠️');
+        if (onError) onError(new Error('Script URL missing'));
+        return;
+      }
+
+      const queryParams = new URLSearchParams({ action, ...params });
+      const fullUrl = `${SCRIPT_URL}?${queryParams.toString()}`;
+
+      try {
+        const res = await fetch(fullUrl, { credentials: 'omit' });
+        const json = await res.json();
+
+        if (json.ok) {
+          if (onSuccess) onSuccess(json.data);
+        } else {
+          const errMsg = json.message || 'API request failed.';
+          showToast(errMsg, '❌');
+          if (onError) onError(new Error(errMsg));
+        }
+      } catch (err) {
+        console.error('API Error:', err);
+        showToast('Connection error: ' + err.message, '⚠️');
+        if (onError) onError(err);
+      }
+    }
+
+    // ========================================================================
+    // DYNAMIC MANAGEMENT HUB (PANs, Gmails, Banks, Budgets, Rules)
+    // ========================================================================
+    function setupManagementHub() {
+      const hubModal = document.getElementById('managementHubModal');
+      document.getElementById('openHubBtn').addEventListener('click', () => {
+        loadManagementHubData();
+        hubModal.classList.add('active');
+      });
+
+      document.getElementById('closeHubBtn').addEventListener('click', () => {
+        hubModal.classList.remove('active');
+      });
+
+      // Sub-tabs
+      document.querySelectorAll('.hub-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.hub-tab-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.hub-content').forEach(c => c.classList.remove('active'));
+
+          btn.classList.add('active');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // 🆔 Add PAN Profile
+      document.getElementById('hubAddPanBtn').addEventListener('click', () => {
+        const name = document.getElementById('hubNewPanMember').value.trim();
+        const pan = document.getElementById('hubNewPanNumber').value.trim().toUpperCase();
+        const broker = document.getElementById('hubNewPanBroker').value.trim() || 'Zerodha';
+        const bank = document.getElementById('hubNewPanBank').value.trim() || 'SBI';
+
+        if (!name || !pan) { showToast('Member Name aur PAN zaroori hai!', '⚠️'); return; }
+
+        callApi('addFamilyProfile', { name, pan, broker, bank }, (res) => {
+          showToast(res.message, '🆔');
+          document.getElementById('hubNewPanMember').value = '';
+          document.getElementById('hubNewPanNumber').value = '';
+          document.getElementById('hubNewPanBroker').value = '';
+          document.getElementById('hubNewPanBank').value = '';
+          loadManagementHubData();
+          refreshIPOData();
+        });
+      });
+
+      // 📧 Add Connected Gmail
+      document.getElementById('hubAddGmailBtn').addEventListener('click', () => {
+        const email = document.getElementById('hubNewGmailEmail').value.trim();
+        const holder = document.getElementById('hubNewGmailHolder').value.trim() || 'Family Member';
+
+        if (!email || !email.includes('@')) { showToast('Valid Gmail ID enter karein!', '⚠️'); return; }
+
+        callApi('addLinkedGmail', { email, holder }, (res) => {
+          showToast(res.message, '📧');
+          document.getElementById('hubNewGmailEmail').value = '';
+          document.getElementById('hubNewGmailHolder').value = '';
+          loadManagementHubData();
+        });
+      });
+
+      // 📧 Copy Forwarding Rule
+      document.getElementById('copyForwardingQueryBtn').addEventListener('click', () => {
+        navigator.clipboard.writeText(FORWARDING_FILTER_QUERY).then(() => {
+          showToast('Forwarding Query copied to clipboard!', '📋');
+        });
+      });
+
+      // 📧 Scan Inboxes Now
+      document.getElementById('hubScanGmailNowBtn').addEventListener('click', () => {
+        showToast('Scanning linked inboxes...', '🔄');
+        callApi('scanGmailNow', {}, (res) => {
+          showToast(`Scan complete: ${res.processed} emails processed!`, '✅');
+          loadManagementHubData();
+          refreshIPOData();
+        });
+      });
+
+      // Add Bank
+      document.getElementById('hubAddBankBtn').addEventListener('click', () => {
+        const bankName = document.getElementById('hubNewBankName').value.trim();
+        const familyMember = document.getElementById('hubNewBankMember').value.trim() || 'Self';
+        const upiId = document.getElementById('hubNewBankUpi').value.trim();
+        const acctNo = document.getElementById('hubNewBankAcct').value.trim();
+
+        if (!bankName) { showToast('Bank Name zaroori hai!', '⚠️'); return; }
+
+        callApi('addBankAccount', { bankName, familyMember, upiId, acctNo }, (res) => {
+          showToast(res.message, '✅');
+          document.getElementById('hubNewBankName').value = '';
+          document.getElementById('hubNewBankUpi').value = '';
+          document.getElementById('hubNewBankAcct').value = '';
+          loadManagementHubData();
+          refreshIPOData();
+        });
+      });
+
+      // Add Category
+      document.getElementById('hubAddCatBtn').addEventListener('click', () => {
+        const name = document.getElementById('hubNewCatName').value.trim();
+        const limit = document.getElementById('hubNewCatLimit').value || 3000;
+
+        if (!name) { showToast('Category Name zaroori hai!', '⚠️'); return; }
+
+        callApi('addCategory', { name, limit }, (res) => {
+          showToast(res.message, '✅');
+          document.getElementById('hubNewCatName').value = '';
+          document.getElementById('hubNewCatLimit').value = '';
+          loadManagementHubData();
+          refreshExpenseData();
+        });
+      });
+
+      // Save AI Rules
+      document.getElementById('hubSaveAiRulesBtn').addEventListener('click', () => {
+        const rulesText = document.getElementById('hubAiRulesInput').value;
+        callApi('saveCustomAiRules', { rulesText }, () => showToast('AI Smart Rules saved!', '🧠'));
+      });
+
+      // Save Settings
+      document.getElementById('hubSaveConfigBtn').addEventListener('click', () => {
+        const stuckDays = document.getElementById('hubStuckDaysInput').value || '7';
+        const budgetPct = document.getElementById('hubBudgetAlertPctInput').value || '80';
+        const userName = document.getElementById('hubUserNameInput').value || 'Chitranshu';
+
+        callApi('saveConfig', { key: 'STUCK_DAYS_THRESHOLD', value: stuckDays }, () => {
+          callApi('saveConfig', { key: 'BUDGET_ALERT_PCT', value: budgetPct }, () => {
+            callApi('saveConfig', { key: 'USER_NAME', value: userName }, () => {
+              showToast('Settings saved!', '💾');
+              refreshAllData();
+            });
+          });
+        });
+      });
+    }
+
+    window.openHubWithTab = function(tabId) {
+      loadManagementHubData();
+      document.getElementById('managementHubModal').classList.add('active');
+      const tabBtn = document.querySelector(`[data-tab="${tabId}"]`);
+      if (tabBtn) tabBtn.click();
+    };
+
+    function loadManagementHubData() {
+      callApi('getManagementData', {}, (data) => {
+        cachedMgmtData = data;
+
+        // 1. Render PAN Profiles
+        const pansList = document.getElementById('hubPansList');
+        if (!data.familyProfiles || data.familyProfiles.length === 0) {
+          pansList.innerHTML = `<div style="color:var(--text-dim);font-size:12px;">No PAN cards added yet.</div>`;
+        } else {
+          pansList.innerHTML = data.familyProfiles.map(p => `
+            <div class="hub-list-item">
+              <div>
+                <strong>${p.memberName}</strong> • <span class="trans-badge">${p.broker}</span><br>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);">${p.maskedPan}</span>
+                <span style="font-size:10.5px;color:var(--text-dim);"> (${p.bank})</span>
+              </div>
+              <button class="undo-btn" onclick="deletePanRow(${p.rowIndex})">Delete</button>
+            </div>
+          `).join('');
+        }
+
+        // 2. Render Connected Gmails
+        const gmailsList = document.getElementById('hubGmailsList');
+        if (!data.linkedGmails || data.linkedGmails.length === 0) {
+          gmailsList.innerHTML = `<div style="color:var(--text-dim);font-size:12px;">No Gmail accounts connected yet.</div>`;
+        } else {
+          gmailsList.innerHTML = data.linkedGmails.map(g => `
+            <div class="hub-list-item">
+              <div>
+                <span class="status-badge" style="width:6px;height:6px;margin-right:4px;"></span>
+                <strong>${g.email}</strong> <span class="trans-badge">${g.holder}</span><br>
+                <span style="font-size:10.5px;color:var(--text-dim);">Last Scan: ${g.lastScanned}</span>
+              </div>
+              <button class="undo-btn" onclick="deleteGmailRow(${g.rowIndex})">Delete</button>
+            </div>
+          `).join('');
+        }
+
+        // 3. Render Banks
+        const banksList = document.getElementById('hubBanksList');
+        banksList.innerHTML = data.banks.map(b => `
+          <div class="hub-list-item">
+            <div>
+              <strong>${b.bankName}</strong> <span class="trans-badge">${b.familyMember}</span><br>
+              <span style="font-size:11px;color:var(--text-dim);">${b.upiId || 'No UPI'} • ${b.acctNo || ''}</span>
+            </div>
+            <button class="undo-btn" onclick="deleteBankRow(${b.rowIndex})">Delete</button>
+          </div>
+        `).join('');
+
+        // 4. Render Categories
+        const catList = document.getElementById('hubCategoriesList');
+        catList.innerHTML = data.categories.map(c => `
+          <div class="hub-list-item">
+            <div><strong>${c.name}</strong> <span style="color:var(--text-dim);font-size:11px;">(₹${c.limit}/mo)</span></div>
+            <button class="undo-btn" onclick="deleteCategoryItem('${c.name}')">Delete</button>
+          </div>
+        `).join('');
+
+        // Form fields
+        document.getElementById('hubAiRulesInput').value = data.config.AI_CUSTOM_RULES || '';
+        document.getElementById('hubStuckDaysInput').value = data.config.STUCK_DAYS_THRESHOLD || '7';
+        document.getElementById('hubBudgetAlertPctInput').value = data.config.BUDGET_ALERT_PCT || '80';
+        document.getElementById('hubUserNameInput').value = data.config.USER_NAME || 'Chitranshu';
+
+        // Update modal dropdowns
+        const acctSelect = document.getElementById('modalIpoAccount');
+        acctSelect.innerHTML = data.banks.map(b => `<option value="${b.bankName}">${b.bankName} (${b.familyMember})</option>`).join('');
+
+        const memberSelect = document.getElementById('modalIpoMember');
+        if (data.familyProfiles && data.familyProfiles.length > 0) {
+          memberSelect.innerHTML = data.familyProfiles.map(p => `<option value="${p.memberName}">${p.memberName} (${p.broker})</option>`).join('');
+        }
+      });
+    }
+
+    window.deletePanRow = function(rowIndex) {
+      callApi('deleteFamilyProfile', { rowIndex }, (res) => {
+        showToast(res.message, '🗑️');
+        loadManagementHubData();
+      });
+    };
+
+    window.deleteGmailRow = function(rowIndex) {
+      callApi('deleteLinkedGmail', { rowIndex }, (res) => {
+        showToast(res.message, '🗑️');
+        loadManagementHubData();
+      });
+    };
+
+    window.deleteBankRow = function(rowIndex) {
+      callApi('deleteBankAccount', { rowIndex }, (res) => {
+        showToast(res.message, '🗑️');
+        loadManagementHubData();
+        refreshIPOData();
+      });
+    };
+
+    window.deleteCategoryItem = function(name) {
+      callApi('deleteCategory', { name }, (res) => {
+        showToast(res.message, '🗑️');
+        loadManagementHubData();
+        refreshExpenseData();
+      });
+    };
+
+    // ========================================================================
+    // SMART SMS TEMPLATE LEARNER
+    // ========================================================================
+    function setupSmsLearner() {
+      const modal = document.getElementById('smsLearnerModal');
+      document.getElementById('openSmsLearnerBtn').addEventListener('click', () => modal.classList.add('active'));
+      document.getElementById('closeSmsLearnerBtn').addEventListener('click', () => modal.classList.remove('active'));
+
+      document.getElementById('submitSmsLearnBtn').addEventListener('click', () => {
+        const smsText = document.getElementById('smsLearnerText').value.trim();
+        const bankName = document.getElementById('smsLearnerBank').value.trim();
+        const familyMember = document.getElementById('smsLearnerMember').value;
+
+        if (!smsText) { showToast('SMS text paste karein!', '⚠️'); return; }
+
+        callApi('learnSmsPattern', { smsText, bankName, familyMember }, (res) => {
+          modal.classList.remove('active');
+          showToast(res.message, '🎉');
+          document.getElementById('smsLearnerText').value = '';
+          appendMessage('assistant', `🧠 <b>Naya Bank Pattern Sikh Liya!</b><br>${res.bank} (${res.familyMember}) ka mapping UPI Map me save ho gaya.`);
+          refreshIPOData();
+        });
+      });
+    }
+
+    // ========================================================================
+    // CAMERA & ATTACHMENT OCR (Gemini Vision Client-Side)
+    // ========================================================================
+    function setupCameraAndAttachments() {
+      cameraBtn.addEventListener('click', () => {
+        if (!GEMINI_API_KEY) { showToast('Settings me Gemini Key dalein!', '⚠️'); settingsModal.classList.add('active'); return; }
+        cameraFileInput.click();
+      });
+
+      attachmentBtn.addEventListener('click', () => {
+        if (!GEMINI_API_KEY) { showToast('Settings me Gemini Key dalein!', '⚠️'); settingsModal.classList.add('active'); return; }
+        attachmentFileInput.click();
+      });
+
+      cameraFileInput.addEventListener('change', (e) => handleImageUpload(e.target.files[0], 'camera'));
+      attachmentFileInput.addEventListener('change', (e) => handleImageUpload(e.target.files[0], 'attachment'));
+    }
+
+    async function handleImageUpload(file, source) {
+      if (!file) return;
+
+      appendMessage('user', `📷 Photo upload ki (${file.name || 'image'})`);
+      appendMessage('assistant', 'Photo analyze ho rahi hai (Gemini Vision)... 🔍');
+      const thinkingMsg = chatMessages.lastElementChild;
+
+      try {
+        const base64Data = await resizeAndConvertToBase64(file);
+        const isIpoMode = (currentMode === 'ipoUpdate');
+        
+        const prompt = isIpoMode ? `
+Analyze this IPO UPI mandate screenshot. Return JSON:
+{ "ipoName": "Company name", "amount": 14950, "account": "SBI/HDFC", "appNo": "", "registrar": "Link Intime/KFintech", "familyMember": "Self" }
+` : `
+Analyze this receipt or handwritten note. Return JSON array of objects:
+[{ "amount": 120, "category": "Food", "paymentMethod": "UPI", "upiApp": "GPay", "account": "SBI", "note": "Chai nashta #Office" }]
+`;
+
+        const visionUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+        const res = await fetch(visionUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: "image/jpeg", data: base64Data } }] }],
+            generationConfig: { temperature: 0.1, responseMimeType: "application/json" }
+          })
+        });
+
+        const data = await res.json();
+        thinkingMsg.remove();
+
+        if (data.candidates && data.candidates[0].content.parts[0].text) {
+          const parsed = JSON.parse(data.candidates[0].content.parts[0].text);
+          if (isIpoMode) {
+            callApi('addIPOApplication', parsed, (ipoRes) => {
+              appendMessage('assistant', `✅ <b>IPO Screenshot Detected!</b><br>${ipoRes.ipoName} (₹${ipoRes.amount}) via ${ipoRes.account} [${ipoRes.familyMember}]`);
+              showToast('IPO Logged!', '🎉');
+              refreshIPOData();
+            });
+          } else {
+            const items = Array.isArray(parsed) ? parsed : [parsed];
+            callApi('batchAddExpenses', { items: JSON.stringify(items) }, () => {
+              const summaryHtml = items.map(it => `• <b>${it.category}</b>: ₹${it.amount} (${it.note})`).join('<br>');
+              appendMessage('assistant', `✅ <b>${items.length} Kharche Save Ho Gaye!</b>`, summaryHtml, true);
+              showToast(`${items.length} logged!`, '💰');
+              refreshExpenseData();
+            });
+          }
+        }
+      } catch (err) {
+        thinkingMsg.remove();
+        appendMessage('assistant', `❌ Error: ${err.message}`);
+      }
+    }
+
+    function resizeAndConvertToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const maxDim = 1024;
+            let w = img.width, h = img.height;
+            if (w > h && w > maxDim) { h = Math.round((h * maxDim) / w); w = maxDim; }
+            else if (h > maxDim) { w = Math.round((w * maxDim) / h); h = maxDim; }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', 0.85).split(',')[1]);
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ========================================================================
+    // UNDO & CHAT LOGIC
+    // ========================================================================
+    window.undoLastExpense = function() {
+      callApi('deleteLastExpense', {}, (res) => {
+        showToast(res.message, '↩️');
+        appendMessage('assistant', `↩️ <b>Undo Success:</b> ₹${res.deleted.amount} (${res.deleted.category}) hata diya.`);
+        refreshExpenseData();
+      });
+    };
+
+    function initSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) { micBtn.style.display = 'none'; return; }
+
+      recognition = new SpeechRecognition();
+      recognition.lang = 'hi-IN';
+
+      recognition.onstart = () => { isListening = true; micBtn.classList.add('recording'); showToast('Sun raha hoon...', '🎙️'); };
+      recognition.onresult = (e) => { chatInput.value = e.results[0][0].transcript; setTimeout(handleSendMessage, 400); };
+      recognition.onerror = () => { isListening = false; micBtn.classList.remove('recording'); };
+      recognition.onend = () => { isListening = false; micBtn.classList.remove('recording'); };
+
+      micBtn.addEventListener('click', () => {
+        if (!isListening) { try { recognition.start(); } catch (e) { recognition.stop(); } }
+        else recognition.stop();
+      });
+    }
+
+    sendBtn.addEventListener('click', handleSendMessage);
+    chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); handleSendMessage(); } });
+
+    function handleSendMessage() {
+      const text = chatInput.value.trim();
+      if (!text) return;
+      appendMessage('user', text);
+      chatInput.value = '';
+
+      if (text.toLowerCase() === 'undo' || text.toLowerCase().includes('pichla kharcha hata')) {
+        undoLastExpense();
+        return;
+      }
+
+      if (currentMode === 'quickAdd') processAiQuickAdd(text);
+      else if (currentMode === 'askAI') processAskAI(text);
+      else if (currentMode === 'ipoUpdate') processIPOUpdate(text);
+    }
+
+    function appendMessage(sender, text, cardHtml = '', showUndo = false) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `message ${sender}`;
+      const avatar = sender === 'user' ? '👤' : '🤖';
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      msgDiv.innerHTML = `
+        <div class="msg-avatar">${avatar}</div>
+        <div class="msg-bubble">
+          ${text}
+          ${cardHtml ? `<div class="card-preview">${cardHtml}</div>` : ''}
+          <div class="msg-footer">
+            ${showUndo ? `<button class="undo-btn" onclick="undoLastExpense()">↩️ Undo</button>` : '<span></span>'}
+            <span class="msg-time">${timeStr}</span>
+          </div>
+        </div>
+      `;
+      chatMessages.appendChild(msgDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function processAiQuickAdd(text) {
+      appendMessage('assistant', 'Kharcha note ho raha hai... ⏳');
+      const thinkingMsg = chatMessages.lastElementChild;
+
+      callApi('parseExpenseWithAI', { text }, (data) => {
+        thinkingMsg.remove();
+        if (data.isUndo) { showToast(data.message, '↩️'); appendMessage('assistant', `↩️ ${data.message}`); refreshExpenseData(); return; }
+
+        const exp = data.expense;
+        const preview = `<strong>${exp.category}</strong>: ₹${exp.amount}<br><span style="color:var(--text-dim);font-size:11px;">Payment: ${exp.paymentMethod} • ${exp.account}</span><br><em>"${exp.note}"</em>`;
+        appendMessage('assistant', `✅ <b>Kharcha save ho gaya!</b>`, preview, true);
+        showToast(`₹${exp.amount} logged!`, '💰');
+        refreshExpenseData();
+      }, (err) => {
+        thinkingMsg.remove();
+        appendMessage('assistant', `❌ Error: ${err.message}`);
+      });
+    }
+
+    function processAskAI(question) {
+      appendMessage('assistant', 'Check kar raha hoon... 🧐');
+      const thinkingMsg = chatMessages.lastElementChild;
+      callApi('askAI', { question }, (data) => {
+        thinkingMsg.remove();
+        appendMessage('assistant', data.answer.replace(/\n/g, '<br>'));
+      });
+    }
+
+    function processIPOUpdate(text) {
+      appendMessage('assistant', 'IPO process kar raha hoon... 📈');
+      const thinkingMsg = chatMessages.lastElementChild;
+      callApi('parseIPO', { text }, (data) => {
+        thinkingMsg.remove();
+        appendMessage('assistant', data.message);
+        refreshIPOData();
+      });
+    }
+
+    // ========================================================================
+    // MODE SWITCHER & STEP FLOW
+    // ========================================================================
+    function setupModeChips() {
+      modeChips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          modeChips.forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          currentMode = chip.dataset.mode;
+          const stepTray = document.getElementById('stepTray');
+          if (currentMode === 'stepByStep') startStepFlow();
+          else {
+            stepTray.classList.remove('active');
+            if (currentMode === 'quickAdd') chatInput.placeholder = 'Chai 20 GPay #Office...';
+            else if (currentMode === 'askAI') chatInput.placeholder = 'Food pe total kitna kharcha hua?';
+            else if (currentMode === 'ipoUpdate') chatInput.placeholder = 'Tata Tech IPO 15000 SBI apply...';
+          }
+        });
+      });
+    }
+
+    function startStepFlow() {
+      document.getElementById('stepTray').classList.add('active');
+      stepFlow.step = 1;
+      stepFlow.data = { category: '', amount: '', paymentMethod: 'UPI', upiApp: 'GPay', account: 'SBI', note: '' };
+      renderCurrentStep();
+    }
+
+    function renderCurrentStep() {
+      const label = document.getElementById('stepProgressLabel');
+      const container = document.getElementById('stepChipsContainer');
+      const inputGroup = document.getElementById('stepInputGroup');
+      const input = document.getElementById('stepCustomInput');
+      container.innerHTML = '';
+      inputGroup.style.display = 'none';
+
+      if (stepFlow.step === 1) {
+        label.innerText = 'Step 1/5: Category Chuniye';
+        stepFlow.categories.forEach(cat => {
+          const btn = document.createElement('button');
+          btn.className = 'step-chip';
+          btn.innerText = cat;
+          btn.onclick = () => { stepFlow.data.category = cat; stepFlow.step = 2; renderCurrentStep(); };
+          container.appendChild(btn);
+        });
+      } else if (stepFlow.step === 2) {
+        label.innerText = 'Step 2/5: Amount (₹)';
+        inputGroup.style.display = 'flex';
+        input.type = 'number';
+        input.placeholder = 'e.g. 150';
+        input.value = '';
+        input.focus();
+      } else if (stepFlow.step === 3) {
+        label.innerText = 'Step 3/5: Payment Method';
+        stepFlow.methods.forEach(m => {
+          const btn = document.createElement('button');
+          btn.className = 'step-chip';
+          btn.innerText = m;
+          btn.onclick = () => { stepFlow.data.paymentMethod = m; stepFlow.step = (m === 'UPI') ? 3.5 : 4; renderCurrentStep(); };
+          container.appendChild(btn);
+        });
+      } else if (stepFlow.step === 3.5) {
+        label.innerText = 'Step 3b/5: UPI App';
+        stepFlow.upiApps.forEach(app => {
+          const btn = document.createElement('button');
+          btn.className = 'step-chip';
+          btn.innerText = app;
+          btn.onclick = () => { stepFlow.data.upiApp = app; stepFlow.step = 4; renderCurrentStep(); };
+          container.appendChild(btn);
+        });
+      } else if (stepFlow.step === 4) {
+        label.innerText = 'Step 4/5: Bank Account';
+        stepFlow.accounts.forEach(acc => {
+          const btn = document.createElement('button');
+          btn.className = 'step-chip';
+          btn.innerText = acc;
+          btn.onclick = () => { stepFlow.data.account = acc; stepFlow.step = 5; renderCurrentStep(); };
+          container.appendChild(btn);
+        });
+      } else if (stepFlow.step === 5) {
+        label.innerText = 'Step 5/5: Note ya #Tags';
+        inputGroup.style.display = 'flex';
+        input.type = 'text';
+        input.placeholder = 'Chai nashta #Office';
+        input.value = '';
+        input.focus();
+      }
+    }
+
+    function setupStepFlowEvents() {
+      const stepNextBtn = document.getElementById('stepNextBtn');
+      const input = document.getElementById('stepCustomInput');
+      stepNextBtn.addEventListener('click', () => {
+        if (stepFlow.step === 2) {
+          const amt = parseFloat(input.value);
+          if (!amt || amt <= 0) { showToast('Amount dalein!', '⚠️'); return; }
+          stepFlow.data.amount = amt; stepFlow.step = 3; renderCurrentStep();
+        } else if (stepFlow.step === 5) {
+          stepFlow.data.note = input.value.trim() || stepFlow.data.category;
+          document.getElementById('stepTray').classList.remove('active');
+          callApi('addExpense', stepFlow.data, (res) => {
+            appendMessage('assistant', `✅ <b>Kharcha add ho gaya!</b> ₹${res.amount} (${res.category})`, '', true);
+            showToast(`₹${res.amount} logged!`, '🎉');
+            refreshExpenseData();
+            document.querySelector('[data-mode="quickAdd"]').click();
+          });
+        }
+      });
+
+      document.getElementById('closeStepBtn').addEventListener('click', () => {
+        document.getElementById('stepTray').classList.remove('active');
+        document.querySelector('[data-mode="quickAdd"]').click();
+      });
+    }
+
+    // ========================================================================
+    // TABS & DATA REFRESH
+    // ========================================================================
+    function setupTabs() {
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach(b => b.classList.remove('active'));
+          views.forEach(v => v.classList.remove('active'));
+          btn.classList.add('active');
+          const target = document.getElementById(btn.dataset.target);
+          target.classList.add('active');
+
+          if (btn.dataset.target === 'expenseView') refreshExpenseData();
+          else if (btn.dataset.target === 'ipoView') refreshIPOData();
+        });
+      });
+
+      document.getElementById('refreshBtn').addEventListener('click', () => {
+        refreshAllData();
+        showToast('Refreshing data...', '🔄');
+      });
+    }
+
+    function refreshAllData() {
+      refreshExpenseData();
+      refreshIPOData();
+    }
+
+    // ========================================================================
+    // EXPENSE DASHBOARD
+    // ========================================================================
+    function refreshExpenseData() {
+      callApi('getDashboardData', {}, (data) => {
+        animateNumber('statTodayTotal', data.stats.todayTotal, '₹');
+        animateNumber('statMonthTotal', data.stats.monthTotal, '₹');
+        document.getElementById('statTopCategory').innerText = data.stats.topCategory;
+        document.getElementById('statTopCategoryAmount').innerText = `₹${data.stats.topCategoryAmount}`;
+        animateNumber('statTransCount', data.stats.totalTransactions, '');
+
+        renderCategoryChart(data.summary.categories);
+        renderTrendChart(data.monthlyTrend);
+        renderBudgets(data.budgets);
+        renderRecentExpenses(data.recentExpenses || []);
+      });
+    }
+
+    function renderBudgets(budgetData) {
+      const container = document.getElementById('budgetBarsContainer');
+      if (!budgetData || !budgetData.budgets) { container.innerHTML = 'No budgets found.'; return; }
+
+      container.innerHTML = budgetData.budgets.map(b => {
+        const barClass = b.status === 'EXCEEDED' ? 'bar-exceeded' : (b.status === 'WARNING' ? 'bar-warning' : 'bar-normal');
+        return `
+          <div class="budget-item">
+            <div class="budget-info">
+              <span><strong>${b.category}</strong>: ₹${b.spent.toLocaleString('en-IN')} / ₹${b.limit.toLocaleString('en-IN')}</span>
+              <span style="font-weight:700; color:${b.percentage >= 100 ? '#f87171' : (b.percentage >= 80 ? '#fbbf24' : '#34d399')};">${b.percentage}%</span>
+            </div>
+            <div class="budget-progress-track">
+              <div class="budget-progress-bar ${barClass}" style="width: ${Math.min(b.percentage, 100)}%;"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderCategoryChart(categories) {
+      const ctx = document.getElementById('categoryChart').getContext('2d');
+      const labels = Object.keys(categories);
+      const values = Object.values(categories);
+      const colors = ['#34d399', '#38bdf8', '#fbbf24', '#f87171', '#c084fc', '#818cf8', '#a78bfa', '#fb923c'];
+
+      if (categoryChartInstance) categoryChartInstance.destroy();
+      if (labels.length === 0) { labels.push('No data'); values.push(1); }
+
+      categoryChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: { labels, datasets: [{ data: values, backgroundColor: colors.slice(0, labels.length), borderColor: '#0e121a', borderWidth: 2 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 11 } } } }, cutout: '70%' }
+      });
+    }
+
+    function renderTrendChart(trendData) {
+      const ctx = document.getElementById('trendChart').getContext('2d');
+      if (trendChartInstance) trendChartInstance.destroy();
+
+      trendChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: trendData.map(t => t.month),
+          datasets: [{ label: 'Spend (₹)', data: trendData.map(t => t.amount), backgroundColor: 'rgba(52, 211, 153, 0.75)', borderRadius: 6 }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+            y: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#94a3b8', font: { size: 10 }, callback: v => '₹' + v } }
+          }
+        }
+      });
+    }
+
+    function renderRecentExpenses(expenses) {
+      const list = document.getElementById('recentExpensesList');
+      const countLabel = document.getElementById('recentCountLabel');
+
+      if (!expenses || expenses.length === 0) {
+        list.innerHTML = `<div style="text-align:center;color:var(--text-dim);padding:20px;font-size:12px;">No transactions.</div>`;
+        countLabel.innerText = '0 items';
+        return;
+      }
+
+      countLabel.innerText = `${expenses.length} recent`;
+      list.innerHTML = expenses.map(e => `
+        <div class="trans-item">
+          <div class="trans-left">
+            <div class="trans-icon">📦</div>
+            <div class="trans-info">
+              <div class="trans-title">${e.note || e.category}</div>
+              <div class="trans-meta">
+                <span class="trans-badge">${e.category}</span>
+                <span>${e.date}</span>
+                <span>• ${e.account}</span>
+              </div>
+            </div>
+          </div>
+          <div class="trans-amount">₹${e.amount}</div>
+        </div>
+      `).join('');
+    }
+
+    // ========================================================================
+    // IPO DASHBOARD (FAMILY LUCK SCORE & STUCK ALERTS)
+    // ========================================================================
+    function refreshIPOData() {
+      callApi('getIPODashboardData', {}, (data) => {
+        animateNumber('ipoBlockedTotal', data.totalBlocked, '₹');
+        animateNumber('ipoAllottedTotal', data.totalAllotted, '₹');
+        animateNumber('ipoRefundedTotal', data.totalRefunded, '₹');
+        animateNumber('ipoPendingCount', data.pendingList.length, '');
+
+        // Stuck Mandate Alert Banner
+        const stuckBanner = document.getElementById('stuckAlertBanner');
+        const stuckDetails = document.getElementById('stuckAlertDetails');
+        if (data.stuckMandatesCount > 0) {
+          stuckBanner.style.display = 'flex';
+          stuckDetails.innerText = `₹${data.totalStuckAmount.toLocaleString('en-IN')} locked across ${data.stuckMandatesCount} mandates (>7 days). Bank se unblock karwane ka time aa gaya!`;
+        } else {
+          stuckBanner.style.display = 'none';
+        }
+
+        // Family Luck Score Grid
+        const luckGrid = document.getElementById('familyLuckGrid');
+        const members = Object.keys(data.familyStats || {});
+        if (members.length === 0) {
+          luckGrid.innerHTML = `<div style="color:var(--text-dim);font-size:12px;padding:8px;">No family profiles recorded yet.</div>`;
+        } else {
+          luckGrid.innerHTML = members.map(m => {
+            const st = data.familyStats[m];
+            const badgeClass = st.winRate >= 50 ? 'winrate-high' : (st.winRate > 0 ? 'winrate-mid' : 'winrate-low');
+            return `
+              <div class="family-card">
+                <div class="family-card-header">
+                  <span>${m}</span>
+                  <span class="luck-winrate ${badgeClass}">${st.winRate}% Win 🏆</span>
+                </div>
+                <div class="family-stats-sub">${st.allotted} Won / ${st.applied} Applied</div>
+                <div style="font-size:12px;font-weight:700;color:var(--accent-blue);margin-top:2px;">₹${st.totalBlocked.toLocaleString('en-IN')} blocked</div>
+              </div>
+            `;
+          }).join('');
+        }
+
+        // Bank Cards
+        const bankContainer = document.getElementById('ipoBankCards');
+        const banks = Object.keys(data.pendingByAccount || {});
+        if (banks.length === 0) {
+          bankContainer.innerHTML = `<div style="color:var(--text-dim);font-size:12px;padding:8px;">No money currently blocked in any bank.</div>`;
+        } else {
+          bankContainer.innerHTML = banks.map(b => `
+            <div class="acc-pill">
+              <div class="acc-name"><span>${b}</span><span style="color:var(--text-dim);font-size:10px;">${data.activeCountByAccount[b] || 1} active</span></div>
+              <span class="acc-amount">₹${data.pendingByAccount[b].toLocaleString('en-IN')}</span>
+            </div>
+          `).join('');
+        }
+
+        // Active List with Stuck Badges
+        const activeList = document.getElementById('ipoActiveList');
+        if (data.pendingList.length === 0) {
+          activeList.innerHTML = `<div style="text-align:center;color:var(--text-dim);padding:20px;font-size:12px;">Filhal koi active mandate nahi hai.</div>`;
+        } else {
+          activeList.innerHTML = data.pendingList.map(ipo => {
+            const regUrl = REGISTRAR_URLS[ipo.registrar] || 'https://linkintime.co.in/';
+            return `
+              <div class="trans-item">
+                <div class="trans-left">
+                  <div class="trans-icon">🔒</div>
+                  <div class="trans-info">
+                    <div class="trans-title">${ipo.ipoName}</div>
+                    <div class="trans-meta">
+                      <span class="status-pill status-applied">Applied</span>
+                      <span>${ipo.account} (${ipo.familyMember})</span>
+                      ${ipo.isStuck ? `<span class="stuck-badge">⚠️ Stuck (${ipo.daysActive}d)</span>` : `<span>• ${ipo.daysActive}d ago</span>`}
+                      ${ipo.allotmentDate ? `<span class="badge-allotment">Allotment: ${ipo.allotmentDate}</span>` : ''}
+                    </div>
+                  </div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                  <div class="trans-amount">₹${ipo.amount.toLocaleString('en-IN')}</div>
+                  <div style="display:flex;gap:4px;">
+                    <a href="${regUrl}" target="_blank" class="btn-registrar">Check ↗</a>
+                    <button class="step-chip" style="padding:2px 6px;font-size:10px;" onclick="quickUpdateIPO('${escapeHtml(ipo.ipoName)}', '${ipo.account}', 'Allotted')">Allotted 🎉</button>
+                    <button class="step-chip" style="padding:2px 6px;font-size:10px;" onclick="quickUpdateIPO('${escapeHtml(ipo.ipoName)}', '${ipo.account}', 'Refunded')">Unblock 🔄</button>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+
+        // Full History List
+        const historyList = document.getElementById('ipoHistoryList');
+        if (data.history.length === 0) {
+          historyList.innerHTML = `<div style="text-align:center;color:var(--text-dim);padding:20px;font-size:12px;">No IPO applications yet.</div>`;
+        } else {
+          historyList.innerHTML = data.history.map(ipo => {
+            const statusClass = ipo.status === 'Allotted' ? 'status-allotted' : (ipo.status === 'Refunded' ? 'status-refunded' : 'status-applied');
+            return `
+              <div class="trans-item">
+                <div class="trans-left">
+                  <div class="trans-icon">${ipo.status === 'Allotted' ? '🎉' : (ipo.status === 'Refunded' ? '🔄' : '🔒')}</div>
+                  <div class="trans-info">
+                    <div class="trans-title">${ipo.ipoName}</div>
+                    <div class="trans-meta">
+                      <span class="status-pill ${statusClass}">${ipo.status}</span>
+                      <span>${ipo.appliedDate}</span>
+                      <span>• ${ipo.account} (${ipo.familyMember})</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="trans-amount">₹${ipo.amount.toLocaleString('en-IN')}</div>
+              </div>
+            `;
+          }).join('');
+        }
+      });
+    }
+
+    window.quickUpdateIPO = function(ipoName, account, status) {
+      callApi('updateIPOStatus', { ipoName, account, status }, (res) => {
+        showToast(`${ipoName} marked as ${status}!`, '✅');
+        refreshIPOData();
+      });
+    };
+
+    function escapeHtml(str) { return (str || '').replace(/'/g, "\\'"); }
+
+    // ========================================================================
+    // MODALS & CONFIG
+    // ========================================================================
+    function setupModals() {
+      // Settings
+      document.getElementById('settingsBtn').addEventListener('click', () => {
+        scriptUrlInput.value = SCRIPT_URL;
+        geminiApiKeyInput.value = GEMINI_API_KEY;
+        settingsModal.classList.add('active');
+      });
+
+      document.getElementById('openConfigBtn').addEventListener('click', () => {
+        scriptUrlInput.value = SCRIPT_URL;
+        geminiApiKeyInput.value = GEMINI_API_KEY;
+        settingsModal.classList.add('active');
+      });
+
+      document.getElementById('closeSettingsBtn').addEventListener('click', () => settingsModal.classList.remove('active'));
+
+      document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+        SCRIPT_URL = scriptUrlInput.value.trim();
+        GEMINI_API_KEY = geminiApiKeyInput.value.trim();
+        localStorage.setItem('EXPENSE_TRACKER_SCRIPT_URL', SCRIPT_URL);
+        localStorage.setItem('GEMINI_CLIENT_API_KEY', GEMINI_API_KEY);
+        settingsModal.classList.remove('active');
+        checkConfig();
+        showToast('Settings saved!', '💾');
+        refreshAllData();
+      });
+
+      // Add IPO Modal
+      const ipoModal = document.getElementById('addIpoModal');
+      document.getElementById('openAddIpoModalBtn').addEventListener('click', () => {
+        loadManagementHubData();
+        ipoModal.classList.add('active');
+      });
+
+      document.getElementById('closeAddIpoBtn').addEventListener('click', () => ipoModal.classList.remove('active'));
+
+      document.getElementById('submitIpoBtn').addEventListener('click', () => {
+        const ipoName = document.getElementById('modalIpoName').value.trim();
+        const account = document.getElementById('modalIpoAccount').value;
+        const familyMember = document.getElementById('modalIpoMember').value;
+        const amount = document.getElementById('modalIpoAmount').value;
+        const appNo = document.getElementById('modalIpoAppNo').value.trim();
+        const registrar = document.getElementById('modalIpoRegistrar').value;
+
+        if (!ipoName || !amount) { showToast('Name & Amount zaroori hai!', '⚠️'); return; }
+
+        callApi('addIPOApplication', { ipoName, account, amount, appNo, registrar, familyMember }, () => {
+          ipoModal.classList.remove('active');
+          showToast(`${ipoName} logged!`, '✅');
+          document.getElementById('modalIpoName').value = '';
+          document.getElementById('modalIpoAmount').value = '';
+          document.getElementById('modalIpoAppNo').value = '';
+          refreshIPOData();
+        });
+      });
+    }
+
+    function showToast(message, icon = '✅') {
+      toastMsg.innerText = message;
+      toastIcon.innerText = icon;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3200);
+    }
+
+    function animateNumber(elementId, targetValue, prefix = '') {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      const duration = 600, start = 0, end = targetValue, startTime = performance.now();
+      function update(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const current = Math.floor(start + (end - start) * progress);
+        el.innerText = `${prefix}${current.toLocaleString('en-IN')}`;
+        if (progress < 1) requestAnimationFrame(update);
+        else el.innerText = `${prefix}${end.toLocaleString('en-IN')}`;
+      }
+      requestAnimationFrame(update);
+    }
+  </script>
+</body>
+</html>
