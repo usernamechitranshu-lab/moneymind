@@ -1941,6 +1941,20 @@
       if (onSuccess) onSuccess();
     }
 
+    function getModelRank(name) {
+      const n = (name || '').toLowerCase();
+      if (n.includes('3.6-flash')) return 100;
+      if (n.includes('3.') && n.includes('flash')) return 90;
+      if (n.includes('3-flash')) return 85;
+      if (n.includes('flash-latest')) return 80;
+      if (n.includes('1.5-flash')) return 70;
+      if (n.includes('flash')) return 60;
+      if (n.includes('3.6-pro') || (n.includes('3.') && n.includes('pro'))) return 50;
+      if (n.includes('pro')) return 40;
+      if (n.includes('2.5-flash')) return 10; // Demoted: deprecated by Google for new users
+      return 5;
+    }
+
     async function handleImageUpload(file, source) {
       if (!file) return;
 
@@ -2006,7 +2020,13 @@ Return ONLY raw valid JSON without markdown wrapping.
 
         let workingEndpoints = [];
 
-        // 1. Query Google ListModels dynamically to find exact active models for this API key
+        // 1. If we already verified a working model in diagnostics or past run, put it at the very top!
+        const savedVisionModel = localStorage.getItem('ACTIVE_VISION_MODEL');
+        if (savedVisionModel) {
+          workingEndpoints.push(`https://generativelanguage.googleapis.com/v1beta/models/${savedVisionModel}:generateContent?key=${GEMINI_API_KEY}`);
+        }
+
+        // 2. Query Google ListModels dynamically to find exact active models for this API key
         try {
           const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
           if (listRes.ok) {
@@ -2014,17 +2034,14 @@ Return ONLY raw valid JSON without markdown wrapping.
             if (listData.models && Array.isArray(listData.models)) {
               const capable = listData.models
                 .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
-                .map(m => m.name); // e.g. "models/gemini-2.5-flash"
+                .map(m => m.name.replace('models/', ''))
+                .filter(m => !m.includes('tts') && !m.includes('image-generation'));
               
-              // Sort flash models to the top
-              capable.sort((a, b) => {
-                if (a.includes('flash') && !b.includes('flash')) return -1;
-                if (!a.includes('flash') && b.includes('flash')) return 1;
-                return 0;
-              });
+              // Sort by priority rank (3.6-flash first, 2.5-flash demoted)
+              capable.sort((a, b) => getModelRank(b) - getModelRank(a));
 
               for (const mName of capable) {
-                workingEndpoints.push(`https://generativelanguage.googleapis.com/v1beta/${mName}:generateContent?key=${GEMINI_API_KEY}`);
+                workingEndpoints.push(`https://generativelanguage.googleapis.com/v1beta/models/${mName}:generateContent?key=${GEMINI_API_KEY}`);
               }
             }
           }
@@ -2032,11 +2049,11 @@ Return ONLY raw valid JSON without markdown wrapping.
           console.warn('ListModels probe error:', probeErr);
         }
 
-        // 2. Add stable v1 & v1beta fallbacks
+        // 3. Add stable modern fallbacks
         workingEndpoints.push(
-          `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GEMINI_API_KEY}`,
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
           `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`
         );
 
@@ -2081,6 +2098,10 @@ Return ONLY raw valid JSON without markdown wrapping.
 
             if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
               visionResultText = data.candidates[0].content.parts[0].text;
+              const matchedModel = visionUrl.match(/models\/([^:]+)/);
+              if (matchedModel && matchedModel[1]) {
+                localStorage.setItem('ACTIVE_VISION_MODEL', matchedModel[1]);
+              }
               break; // Success!
             }
           } catch (fetchErr) {
@@ -2783,24 +2804,22 @@ Return ONLY raw valid JSON without markdown wrapping.
             report.errors.push(`Gemini Key error: ${errMsg}`);
             setStep('Vision', 'error', 'Skipped', 'Invalid key');
           } else {
-            const models = (listJson.models || [])
+            const allCapable = (listJson.models || [])
               .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
-              .map(m => m.name.replace('models/', ''));
+              .map(m => m.name.replace('models/', ''))
+              .filter(m => !m.includes('tts') && !m.includes('image-generation'));
 
-            report.modelsFound = models;
+            allCapable.sort((a, b) => getModelRank(b) - getModelRank(a));
+            report.modelsFound = allCapable;
 
-            if (models.length === 0) {
+            if (allCapable.length === 0) {
               setStep('AiKey', 'error', '0 Models', '⚠️ Is key par koi generateContent model enabled nahi hai.');
               report.geminiKey = 'Valid key but 0 models found';
               report.errors.push('No models supporting generateContent found');
               setStep('Vision', 'error', 'Skipped', 'No active models');
             } else {
-              const flash = models.find(m => m.includes('2.5-flash')) || models.find(m => m.includes('flash')) || models[0];
-              workingVisionModel = flash;
-              workingVisionUrl = `https://generativelanguage.googleapis.com/v1beta/models/${flash}:generateContent?key=${GEMINI_API_KEY}`;
-
-              setStep('AiKey', 'success', `${models.length} Models Active`, `✅ Key 100% Valid hai! Active Vision Model: <b>${flash}</b>.<br><small style="color:var(--text-dim);">Found: ${models.slice(0, 5).join(', ')}</small>`);
-              report.geminiKey = `Valid (${models.length} models)`;
+              setStep('AiKey', 'success', `${allCapable.length} Models Active`, `✅ Key 100% Valid hai! Prioritized: <b>${allCapable[0]}</b>.<br><small style="color:var(--text-dim);">Top Models: ${allCapable.slice(0, 5).join(', ')}</small>`);
+              report.geminiKey = `Valid (${allCapable.length} models)`;
             }
           }
         } catch (err) {
@@ -2812,42 +2831,71 @@ Return ONLY raw valid JSON without markdown wrapping.
       }
 
       // --- TEST 4: LIVE MULTIMODAL VISION OCR TEST ---
-      if (workingVisionUrl) {
-        setStep('Vision', 'running', 'Testing OCR...', `Model <b>${workingVisionModel}</b> par live test image verify ho rahi hai...`);
-        const vStart = performance.now();
+      if (report.modelsFound && report.modelsFound.length > 0) {
+        setStep('Vision', 'running', 'Testing OCR...', 'Candidate models verify ho rahe hain...');
         const testBase64 = '/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=';
 
-        try {
-          const vRes = await fetch(workingVisionUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{
-                parts: [
-                  { inlineData: { mimeType: "image/jpeg", data: testBase64 } },
-                  { text: "Reply only with word: TEST_PASSED" }
-                ]
-              }],
-              generationConfig: { temperature: 0.1 }
-            })
-          });
+        const candidatesToTry = [
+          ...report.modelsFound.slice(0, 5),
+          'gemini-3.6-flash',
+          'gemini-1.5-flash-latest',
+          'gemini-1.5-flash'
+        ].filter((m, i, arr) => m && arr.indexOf(m) === i);
 
-          const vLatency = Math.round(performance.now() - vStart);
-          const vJson = await vRes.json();
+        let visionPassed = false;
+        let lastVErr = '';
+        let workingVisionModel = null;
+        let finalLatency = 0;
 
-          if (!vRes.ok || vJson.error) {
-            const vErr = vJson.error ? vJson.error.message : `HTTP ${vRes.status}`;
-            setStep('Vision', 'error', 'Failed', `❌ Vision test failed on ${workingVisionModel}: <i>${vErr}</i>`);
-            report.vision = `Failed on ${workingVisionModel}: ${vErr}`;
-            report.errors.push(`Vision OCR failed: ${vErr}`);
-          } else {
-            setStep('Vision', 'success', `Passed (${vLatency}ms)`, `✅ Multimodal Vision OCR 100% chal raha hai! (${workingVisionModel} - ${vLatency}ms).<br>Ab camera aur IPO screenshots perfectly process honge.`);
-            report.vision = `Working with ${workingVisionModel} (${vLatency}ms)`;
+        for (const testModel of candidatesToTry) {
+          setStep('Vision', 'running', 'Testing...', `Model <b>${testModel}</b> test ho raha hai...`);
+          const vStart = performance.now();
+          const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${testModel}:generateContent?key=${GEMINI_API_KEY}`;
+
+          try {
+            const vRes = await fetch(targetUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{
+                  parts: [
+                    { inlineData: { mimeType: "image/jpeg", data: testBase64 } },
+                    { text: "Reply only with word: TEST_PASSED" }
+                  ]
+                }],
+                generationConfig: { temperature: 0.1 }
+              })
+            });
+
+            const vLatency = Math.round(performance.now() - vStart);
+            const vJson = await vRes.json();
+
+            if (!vRes.ok || vJson.error) {
+              const errMsg = vJson.error ? vJson.error.message : `HTTP ${vRes.status}`;
+              console.warn(`Vision test on ${testModel} failed:`, errMsg);
+              lastVErr = `${testModel}: ${errMsg}`;
+              continue; // Next candidate
+            }
+
+            // Success!
+            workingVisionModel = testModel;
+            finalLatency = vLatency;
+            visionPassed = true;
+            localStorage.setItem('ACTIVE_VISION_MODEL', testModel);
+            break;
+          } catch (netErr) {
+            console.warn(`Network error on ${testModel}:`, netErr);
+            lastVErr = `${testModel}: ${netErr.message}`;
           }
-        } catch (vErr) {
-          setStep('Vision', 'error', 'Network Error', `❌ Test image process nahi ho saki: ${vErr.message}`);
-          report.vision = `Network error: ${vErr.message}`;
-          report.errors.push(`Vision network error: ${vErr.message}`);
+        }
+
+        if (visionPassed) {
+          setStep('Vision', 'success', `Passed (${finalLatency}ms)`, `✅ Multimodal Vision OCR 100% chal raha hai! Active Model: <b>${workingVisionModel}</b> (${finalLatency}ms).<br>Ab camera aur IPO screenshots perfectly process honge.`);
+          report.vision = `Working with ${workingVisionModel} (${finalLatency}ms)`;
+        } else {
+          setStep('Vision', 'error', 'Failed', `❌ Vision test failed across models: <i>${lastVErr}</i>`);
+          report.vision = `Failed: ${lastVErr}`;
+          report.errors.push(`Vision OCR failed: ${lastVErr}`);
         }
       }
 
