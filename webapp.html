@@ -911,7 +911,7 @@
       <div class="brand">
         <div class="brand-logo">₹</div>
         <div class="brand-text">
-          <h1>MoneyMind <span class="status-badge" id="apiStatusDot" title="Online"></span></h1>
+          <h1>MoneyMind <span style="font-size:10px;padding:2px 7px;border-radius:12px;background:rgba(52,211,153,0.15);color:#34d399;font-weight:800;letter-spacing:0.5px;border:1px solid rgba(52,211,153,0.3);vertical-align:middle;margin-left:4px;">v3.6</span> <span class="status-badge" id="apiStatusDot" title="Online"></span></h1>
           <p class="creator-badge">Made with ❤️ by <strong>Chitranshu Shrivastava</strong></p>
         </div>
       </div>
@@ -2113,6 +2113,26 @@ Return ONLY raw valid JSON without markdown wrapping.
         if (thinkingMsg) thinkingMsg.remove();
 
         if (!visionResultText) {
+          if (SCRIPT_URL) {
+            // Automatic Seamless Server-Side Fallback!
+            appendMessage('assistant', 'Client AI fail hua. Backend Cloud Vision (gemini-3.6-flash) se process ho raha hai... ⚡');
+            const fallbackThinking = chatMessages.lastElementChild;
+            callApi('parseImage', { imageBase64: base64Data, mimeType: file.type || 'image/jpeg' }, (backendRes) => {
+              if (fallbackThinking) fallbackThinking.remove();
+              if (backendRes && backendRes.data && backendRes.data.message) {
+                appendMessage('assistant', `✅ <b>Cloud Vision Success:</b> ${backendRes.data.message}`);
+                if (backendRes.data.docType === 'IPO') refreshIPOData();
+                else refreshAllData();
+              } else {
+                appendMessage('assistant', `❌ <b>AI Analysis Failed:</b> ${backendRes ? backendRes.message : 'Image analyze nahi ho saki'}`);
+              }
+            }, (err) => {
+              if (fallbackThinking) fallbackThinking.remove();
+              appendMessage('assistant', `❌ <b>AI Analysis Failed:</b> ${err.message}`);
+            });
+            return;
+          }
+
           appendMessage('assistant', `❌ <b>AI Analysis Failed:</b> ${lastVisionError || 'Image analyze nahi ho saki'}.<br><small>Settings ⚙️ me Gemini API Key check karein.</small>`);
           return;
         }
@@ -2889,9 +2909,31 @@ Return ONLY raw valid JSON without markdown wrapping.
           }
         }
 
+        // If client tests failed, automatically test Backend Cloud Vision!
+        if (!visionPassed && SCRIPT_URL) {
+          setStep('Vision', 'running', 'Testing Backend...', 'Client test fail hua. Backend Cloud Vision probe ho raha hai...');
+          try {
+            const bStart = performance.now();
+            const bRes = await fetch(`${SCRIPT_URL}?action=testVisionBackend`, { credentials: 'omit' });
+            const bLatency = Math.round(performance.now() - bStart);
+            const bJson = await bRes.json();
+            if (bJson.ok) {
+              visionPassed = true;
+              workingVisionModel = "Backend Cloud Vision (gemini-3.6-flash)";
+              finalLatency = bLatency;
+              setStep('Vision', 'success', `Passed (${bLatency}ms via Cloud)`, `✅ Backend Cloud Vision 100% active hai! (${bLatency}ms).<br>Photo uploads automatically server-side process ho jayenge.`);
+              report.vision = `Working via Backend Cloud Vision (${bLatency}ms)`;
+            }
+          } catch (bErr) {
+            console.warn('Backend vision test error:', bErr);
+          }
+        }
+
         if (visionPassed) {
-          setStep('Vision', 'success', `Passed (${finalLatency}ms)`, `✅ Multimodal Vision OCR 100% chal raha hai! Active Model: <b>${workingVisionModel}</b> (${finalLatency}ms).<br>Ab camera aur IPO screenshots perfectly process honge.`);
-          report.vision = `Working with ${workingVisionModel} (${finalLatency}ms)`;
+          if (!report.vision) {
+            setStep('Vision', 'success', `Passed (${finalLatency}ms)`, `✅ Multimodal Vision OCR 100% chal raha hai! Active Model: <b>${workingVisionModel}</b> (${finalLatency}ms).<br>Ab camera aur IPO screenshots perfectly process honge.`);
+            report.vision = `Working with ${workingVisionModel} (${finalLatency}ms)`;
+          }
         } else {
           setStep('Vision', 'error', 'Failed', `❌ Vision test failed across models: <i>${lastVErr}</i>`);
           report.vision = `Failed: ${lastVErr}`;
@@ -2924,13 +2966,14 @@ Return ONLY raw valid JSON without markdown wrapping.
       if (!rep) { showToast('Pehle test run hone dein!', '⚠️'); return; }
 
       const text = `=== MoneyMind Diagnostic Report ===
+App Version: v3.6-LIVE (Build 2026-09-11 13:00)
 Timestamp: ${rep.timestamp}
 Backend: ${rep.backend || 'N/A'}
 Google Sheets: ${rep.sheets || 'N/A'}
 Gemini API Key: ${rep.geminiKey || 'N/A'}
 Active Vision Model: ${rep.vision || 'N/A'}
 Available Models: ${(rep.modelsFound || []).slice(0, 6).join(', ') || 'None'}
-Issues Detected: ${rep.errors.length === 0 ? 'None (100% Healthy)' : rep.errors.join(' | ')}
+Issues Detected: ${report?.errors?.length === 0 ? 'None (100% Healthy)' : (rep.errors || []).join(' | ')}
 ===================================`;
 
       navigator.clipboard.writeText(text).then(() => {
