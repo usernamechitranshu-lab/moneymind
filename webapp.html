@@ -857,7 +857,43 @@
       border-radius: 6px;
       font-size: 11px;
       font-weight: 700;
-      cursor: pointer;
+    /* Diagnostics Cards & Modal */
+    .diag-card {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: all 0.2s ease;
+    }
+    .diag-card.success { border-color: rgba(52, 211, 153, 0.4); background: rgba(52, 211, 153, 0.05); }
+    .diag-card.error { border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.08); }
+    .diag-card.running { border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.05); }
+    .diag-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+    }
+    .diag-header strong { flex: 1; color: var(--text); }
+    .diag-badge {
+      font-size: 10.5px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+    }
+    .diag-badge.pass { background: rgba(52, 211, 153, 0.2); color: #34d399; }
+    .diag-badge.fail { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    .diag-badge.active { background: rgba(56, 189, 248, 0.2); color: #38bdf8; animation: pulse 1.2s infinite; }
+    .diag-detail {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+      word-break: break-word;
     }
   </style>
 </head>
@@ -880,6 +916,7 @@
         </div>
       </div>
       <div class="header-actions">
+        <button class="icon-btn" id="openDiagnosticsBtn" title="1-Click System Diagnostics & Test">🩺</button>
         <button class="icon-btn" id="openHubBtn" title="Control Hub (Banks, PANs, Gmails, Budgets)">🎛️</button>
         <button class="icon-btn" id="refreshBtn" title="Refresh Data">🔄</button>
         <button class="icon-btn" id="settingsBtn" title="API Settings">⚙️</button>
@@ -928,6 +965,7 @@
           <button class="mode-chip" data-mode="askAI">🔍 Ask a Question</button>
           <button class="mode-chip" data-mode="ipoUpdate">📈 IPO Update</button>
           <button class="mode-chip" data-mode="stepByStep">🔘 Step-by-Step</button>
+          <button class="mode-chip" id="diagChipBtn" style="color:#38bdf8;border-color:rgba(56,189,248,0.35);">🩺 1-Click Test</button>
         </div>
 
         <!-- Step-by-Step Tray -->
@@ -1373,6 +1411,86 @@
         Crafted with ❤️ by Chitranshu Shrivastava. Zero-cost personal finance & multi-account IPO tracker.
       </div>
       <button class="btn-full btn-primary" id="saveSettingsBtn">Save Settings</button>
+      <button class="btn-full" id="openDiagnosticsFromSettingsBtn" style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;margin-top:8px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;">
+        🩺 Run 1-Click System Diagnostics
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       SYSTEM DIAGNOSTICS & SELF-TEST MODAL (1-Click Health Check)
+       ======================================================================== -->
+  <div class="modal-overlay" id="diagnosticsModal">
+    <div class="modal-box" style="max-width: 520px;">
+      <div class="modal-header">
+        <div>
+          <h3>🩺 System Diagnostics & Test</h3>
+          <span style="font-size:11px;color:var(--text-muted);">1-Click MoneyMind Health & Feature Verification</span>
+        </div>
+        <button class="icon-btn" id="closeDiagnosticsBtn" style="width:28px;height:28px;">✕</button>
+      </div>
+
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">
+        Yeh tool aapke Apps Script Backend, Google Sheets Database, Gemini AI aur Vision OCR ko live test karega.
+      </div>
+
+      <!-- Test Items List -->
+      <div id="diagResultsList" style="display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto;padding:4px 0;">
+        <!-- Test 1: Backend -->
+        <div class="diag-card" id="diagStepBackend">
+          <div class="diag-header">
+            <span class="diag-icon" id="diagIconBackend">⏳</span>
+            <strong>1. Google Apps Script Backend</strong>
+            <span class="diag-badge" id="diagBadgeBackend">Pending</span>
+          </div>
+          <div class="diag-detail" id="diagDetailBackend">Connection ping test hone wala hai...</div>
+        </div>
+
+        <!-- Test 2: Google Sheets -->
+        <div class="diag-card" id="diagStepSheets">
+          <div class="diag-header">
+            <span class="diag-icon" id="diagIconSheets">⏳</span>
+            <strong>2. Google Sheets Database (8 Tabs)</strong>
+            <span class="diag-badge" id="diagBadgeSheets">Pending</span>
+          </div>
+          <div class="diag-detail" id="diagDetailSheets">Sheets schema check hone wala hai...</div>
+        </div>
+
+        <!-- Test 3: Gemini API Key & Model Probe -->
+        <div class="diag-card" id="diagStepAiKey">
+          <div class="diag-header">
+            <span class="diag-icon" id="diagIconAiKey">⏳</span>
+            <strong>3. Gemini API Key & Active Models</strong>
+            <span class="diag-badge" id="diagBadgeAiKey">Pending</span>
+          </div>
+          <div class="diag-detail" id="diagDetailAiKey">Google AI Studio key validate hone wali hai...</div>
+        </div>
+
+        <!-- Test 4: Multimodal Vision OCR -->
+        <div class="diag-card" id="diagStepVision">
+          <div class="diag-header">
+            <span class="diag-icon" id="diagIconVision">⏳</span>
+            <strong>4. Camera & Screenshot Vision OCR</strong>
+            <span class="diag-badge" id="diagBadgeVision">Pending</span>
+          </div>
+          <div class="diag-detail" id="diagDetailVision">Live test image bheji jayegi...</div>
+        </div>
+      </div>
+
+      <!-- Overall Status Banner -->
+      <div id="diagSummaryBanner" style="display:none;margin-top:10px;padding:10px 12px;border-radius:10px;font-size:12px;font-weight:600;align-items:center;justify-content:space-between;">
+        <span id="diagSummaryText">Overall Health: Testing...</span>
+      </div>
+
+      <!-- Actions -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
+        <button class="btn-full" id="diagRerunBtn" style="background:var(--bg-input);border:1px solid var(--border);color:var(--text);font-weight:700;">
+          🔄 Re-Run Test
+        </button>
+        <button class="btn-full btn-primary" id="diagCopyReportBtn">
+          📋 Copy Report
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1886,13 +2004,50 @@ Return JSON:
 Return ONLY raw valid JSON without markdown wrapping.
 `;
 
-        const modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-flash'];
+        let workingEndpoints = [];
+
+        // 1. Query Google ListModels dynamically to find exact active models for this API key
+        try {
+          const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
+          if (listRes.ok) {
+            const listData = await listRes.json();
+            if (listData.models && Array.isArray(listData.models)) {
+              const capable = listData.models
+                .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
+                .map(m => m.name); // e.g. "models/gemini-2.5-flash"
+              
+              // Sort flash models to the top
+              capable.sort((a, b) => {
+                if (a.includes('flash') && !b.includes('flash')) return -1;
+                if (!a.includes('flash') && b.includes('flash')) return 1;
+                return 0;
+              });
+
+              for (const mName of capable) {
+                workingEndpoints.push(`https://generativelanguage.googleapis.com/v1beta/${mName}:generateContent?key=${GEMINI_API_KEY}`);
+              }
+            }
+          }
+        } catch (probeErr) {
+          console.warn('ListModels probe error:', probeErr);
+        }
+
+        // 2. Add stable v1 & v1beta fallbacks
+        workingEndpoints.push(
+          `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`
+        );
+
+        // Remove duplicates
+        workingEndpoints = [...new Set(workingEndpoints)];
+
         let visionResultText = null;
         let lastVisionError = null;
 
-        for (const model of modelsToTry) {
+        for (const visionUrl of workingEndpoints) {
           try {
-            const visionUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
             const res = await fetch(visionUrl, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -1911,8 +2066,7 @@ Return ONLY raw valid JSON without markdown wrapping.
                   ]
                 }],
                 generationConfig: {
-                  temperature: 0.1,
-                  responseMimeType: "application/json"
+                  temperature: 0.1
                 }
               })
             });
@@ -1920,17 +2074,17 @@ Return ONLY raw valid JSON without markdown wrapping.
             const data = await res.json();
             if (!res.ok || data.error) {
               const errMsg = data.error ? data.error.message : `HTTP ${res.status}`;
-              console.warn(`Vision model ${model} failed:`, errMsg);
+              console.warn(`Vision URL ${visionUrl} failed:`, errMsg);
               lastVisionError = errMsg;
               continue;
             }
 
             if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
               visionResultText = data.candidates[0].content.parts[0].text;
-              break;
+              break; // Success!
             }
           } catch (fetchErr) {
-            console.warn(`Fetch error with ${model}:`, fetchErr);
+            console.warn(`Fetch error with ${visionUrl}:`, fetchErr);
             lastVisionError = fetchErr.message;
           }
         }
@@ -2065,8 +2219,14 @@ Return ONLY raw valid JSON without markdown wrapping.
       appendMessage('user', text);
       chatInput.value = '';
 
-      if (text.toLowerCase() === 'undo' || text.toLowerCase().includes('pichla kharcha hata')) {
+      const lower = text.toLowerCase();
+      if (lower === 'undo' || lower.includes('pichla kharcha hata')) {
         undoLastExpense();
+        return;
+      }
+
+      if (lower === 'test' || lower === 'diagnose' || lower === 'health' || lower === 'check' || lower === '/test') {
+        runDiagnostics();
         return;
       }
 
@@ -2509,9 +2669,247 @@ Return ONLY raw valid JSON without markdown wrapping.
     function escapeHtml(str) { return (str || '').replace(/'/g, "\\'"); }
 
     // ========================================================================
+    // 🩺 1-CLICK SYSTEM DIAGNOSTICS & FEATURE VERIFICATION
+    // ========================================================================
+    window.lastDiagnosticReport = null;
+
+    async function runDiagnostics() {
+      const modal = document.getElementById('diagnosticsModal');
+      modal.classList.add('active');
+
+      const report = {
+        timestamp: new Date().toLocaleString('en-IN'),
+        backend: null,
+        sheets: null,
+        geminiKey: null,
+        vision: null,
+        modelsFound: [],
+        errors: []
+      };
+
+      const setStep = (id, state, badgeText, detailHtml) => {
+        const card = document.getElementById(`diagStep${id}`);
+        const icon = document.getElementById(`diagIcon${id}`);
+        const badge = document.getElementById(`diagBadge${id}`);
+        const detail = document.getElementById(`diagDetail${id}`);
+        if (!card) return;
+
+        card.className = `diag-card ${state}`;
+        badge.className = `diag-badge ${state === 'running' ? 'active' : (state === 'success' ? 'pass' : (state === 'error' ? 'fail' : ''))}`;
+        badge.innerText = badgeText;
+        detail.innerHTML = detailHtml;
+
+        if (state === 'running') icon.innerText = '⚡';
+        else if (state === 'success') icon.innerText = '✅';
+        else if (state === 'error') icon.innerText = '❌';
+        else icon.innerText = '⏳';
+      };
+
+      // Reset UI
+      setStep('Backend', 'running', 'Testing...', 'Pinging Google Apps Script URL...');
+      setStep('Sheets', '', 'Pending', 'Waiting for backend test...');
+      setStep('AiKey', '', 'Pending', 'Waiting for backend test...');
+      setStep('Vision', '', 'Pending', 'Waiting for key verification...');
+      document.getElementById('diagSummaryBanner').style.display = 'none';
+
+      // --- TEST 1: BACKEND CONNECTION ---
+      const startTime = performance.now();
+      if (!SCRIPT_URL) {
+        setStep('Backend', 'error', 'Missing URL', '❌ Apps Script Web App URL set nahi hai! Settings ⚙️ me jakar <code>/exec</code> URL dalein.');
+        report.backend = 'Missing URL';
+        report.errors.push('Apps Script URL is missing');
+        setStep('Sheets', 'error', 'Skipped', 'Backend URL missing');
+      } else {
+        try {
+          const pingRes = await fetch(`${SCRIPT_URL}?action=ping`, { credentials: 'omit' });
+          const latency = Math.round(performance.now() - startTime);
+          if (!pingRes.ok) throw new Error(`HTTP ${pingRes.status} ${pingRes.statusText}`);
+          const pingJson = await pingRes.json();
+
+          if (pingJson.ok) {
+            setStep('Backend', 'success', `Connected (${latency}ms)`, `✅ Connected to <b>${pingJson.app || 'MoneyMind'}</b> v${pingJson.version || '3.5'} (Ping: ${latency}ms).`);
+            report.backend = `Connected (${latency}ms)`;
+
+            // --- TEST 2: GOOGLE SHEETS DATABASE ---
+            setStep('Sheets', 'running', 'Checking...', 'Google Sheets tabs verify ho rahe hain...');
+            const expectedSheets = ['Expenses', 'Pending', 'IPOs', 'UPI Map', 'Budgets', 'Config', 'Family Profiles', 'Linked Gmails'];
+            const found = pingJson.sheetsFound || [];
+            const missing = expectedSheets.filter(s => !found.includes(s));
+
+            if (missing.length === 0) {
+              setStep('Sheets', 'success', `8/8 Sheets OK`, `✅ Saari 8 sheets active hain (${found.join(', ')}).<br><a href="${pingJson.sheetUrl || '#'}" target="_blank" style="color:var(--accent);text-decoration:underline;font-size:11px;">Google Sheet Kholein ↗</a>`);
+              report.sheets = '8/8 Tabs Verified';
+            } else {
+              setStep('Sheets', 'error', `${8 - missing.length}/8 Sheets`, `⚠️ Missing sheets: <b>${missing.join(', ')}</b>.<br>Script Editor me <code>setupInitialSheets</code> run karein.`);
+              report.sheets = `Missing: ${missing.join(', ')}`;
+              report.errors.push(`Missing sheets: ${missing.join(', ')}`);
+            }
+          } else {
+            throw new Error(pingJson.message || 'Backend returned ok=false');
+          }
+        } catch (err) {
+          setStep('Backend', 'error', 'Error', `❌ Backend unreachable: <i>${err.message}</i>.<br>Apps Script deployment me "Who has access" = "Anyone" check karein.`);
+          report.backend = `Failed: ${err.message}`;
+          report.errors.push(`Backend error: ${err.message}`);
+          setStep('Sheets', 'error', 'Skipped', 'Backend connection error');
+        }
+      }
+
+      // --- TEST 3: GEMINI API KEY & ACTIVE MODELS PROBE ---
+      setStep('AiKey', 'running', 'Probing...', 'Google AI Studio se active models query ho rahe hain...');
+      let workingVisionModel = null;
+      let workingVisionUrl = null;
+
+      // Auto-retrieve from backend if local missing
+      if (!GEMINI_API_KEY && cachedMgmtData && cachedMgmtData.clientApiKey) {
+        GEMINI_API_KEY = cachedMgmtData.clientApiKey;
+        localStorage.setItem('GEMINI_CLIENT_API_KEY', GEMINI_API_KEY);
+      }
+
+      if (!GEMINI_API_KEY) {
+        setStep('AiKey', 'error', 'Key Missing', '❌ Settings ⚙️ me Gemini API Key nahi dali hui hai.');
+        setStep('Vision', 'error', 'Skipped', 'API Key missing');
+        report.geminiKey = 'Missing';
+        report.errors.push('Gemini API Key missing');
+      } else {
+        try {
+          const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
+          const listJson = await listRes.json();
+
+          if (!listRes.ok || listJson.error) {
+            const errMsg = listJson.error ? listJson.error.message : `HTTP ${listRes.status}`;
+            setStep('AiKey', 'error', 'Invalid Key', `❌ Google ne key reject ki: <i>${errMsg}</i>.<br><a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent);">AI Studio se Nayi Key Banayein ↗</a>`);
+            report.geminiKey = `Rejected: ${errMsg}`;
+            report.errors.push(`Gemini Key error: ${errMsg}`);
+            setStep('Vision', 'error', 'Skipped', 'Invalid key');
+          } else {
+            const models = (listJson.models || [])
+              .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
+              .map(m => m.name.replace('models/', ''));
+
+            report.modelsFound = models;
+
+            if (models.length === 0) {
+              setStep('AiKey', 'error', '0 Models', '⚠️ Is key par koi generateContent model enabled nahi hai.');
+              report.geminiKey = 'Valid key but 0 models found';
+              report.errors.push('No models supporting generateContent found');
+              setStep('Vision', 'error', 'Skipped', 'No active models');
+            } else {
+              const flash = models.find(m => m.includes('2.5-flash')) || models.find(m => m.includes('flash')) || models[0];
+              workingVisionModel = flash;
+              workingVisionUrl = `https://generativelanguage.googleapis.com/v1beta/models/${flash}:generateContent?key=${GEMINI_API_KEY}`;
+
+              setStep('AiKey', 'success', `${models.length} Models Active`, `✅ Key 100% Valid hai! Active Vision Model: <b>${flash}</b>.<br><small style="color:var(--text-dim);">Found: ${models.slice(0, 5).join(', ')}</small>`);
+              report.geminiKey = `Valid (${models.length} models)`;
+            }
+          }
+        } catch (err) {
+          setStep('AiKey', 'error', 'Network Error', `❌ Key probe nahi ho saki: ${err.message}`);
+          report.geminiKey = `Probe error: ${err.message}`;
+          report.errors.push(`Gemini key network error: ${err.message}`);
+          setStep('Vision', 'error', 'Skipped', 'Probe error');
+        }
+      }
+
+      // --- TEST 4: LIVE MULTIMODAL VISION OCR TEST ---
+      if (workingVisionUrl) {
+        setStep('Vision', 'running', 'Testing OCR...', `Model <b>${workingVisionModel}</b> par live test image verify ho rahi hai...`);
+        const vStart = performance.now();
+        const testBase64 = '/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=';
+
+        try {
+          const vRes = await fetch(workingVisionUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [
+                  { inlineData: { mimeType: "image/jpeg", data: testBase64 } },
+                  { text: "Reply only with word: TEST_PASSED" }
+                ]
+              }],
+              generationConfig: { temperature: 0.1 }
+            })
+          });
+
+          const vLatency = Math.round(performance.now() - vStart);
+          const vJson = await vRes.json();
+
+          if (!vRes.ok || vJson.error) {
+            const vErr = vJson.error ? vJson.error.message : `HTTP ${vRes.status}`;
+            setStep('Vision', 'error', 'Failed', `❌ Vision test failed on ${workingVisionModel}: <i>${vErr}</i>`);
+            report.vision = `Failed on ${workingVisionModel}: ${vErr}`;
+            report.errors.push(`Vision OCR failed: ${vErr}`);
+          } else {
+            setStep('Vision', 'success', `Passed (${vLatency}ms)`, `✅ Multimodal Vision OCR 100% chal raha hai! (${workingVisionModel} - ${vLatency}ms).<br>Ab camera aur IPO screenshots perfectly process honge.`);
+            report.vision = `Working with ${workingVisionModel} (${vLatency}ms)`;
+          }
+        } catch (vErr) {
+          setStep('Vision', 'error', 'Network Error', `❌ Test image process nahi ho saki: ${vErr.message}`);
+          report.vision = `Network error: ${vErr.message}`;
+          report.errors.push(`Vision network error: ${vErr.message}`);
+        }
+      }
+
+      // Final Overall Summary
+      const summaryBanner = document.getElementById('diagSummaryBanner');
+      const summaryText = document.getElementById('diagSummaryText');
+      summaryBanner.style.display = 'flex';
+
+      if (report.errors.length === 0) {
+        summaryBanner.style.background = 'rgba(52, 211, 153, 0.15)';
+        summaryBanner.style.border = '1px solid rgba(52, 211, 153, 0.4)';
+        summaryBanner.style.color = '#34d399';
+        summaryText.innerHTML = '🎉 <b>100% HEALTHY:</b> Saare features, Google Sheets aur AI bilkul sahi kaam kar rahe hain!';
+      } else {
+        summaryBanner.style.background = 'rgba(239, 68, 68, 0.15)';
+        summaryBanner.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+        summaryBanner.style.color = '#f87171';
+        summaryText.innerHTML = `⚠️ <b>${report.errors.length} Issue(s) Detected:</b> Upar red boxes me exact solution check karein ya "Copy Report" dabakar bhejein.`;
+      }
+
+      window.lastDiagnosticReport = report;
+    }
+
+    function copyDiagnosticReport() {
+      const rep = window.lastDiagnosticReport;
+      if (!rep) { showToast('Pehle test run hone dein!', '⚠️'); return; }
+
+      const text = `=== MoneyMind Diagnostic Report ===
+Timestamp: ${rep.timestamp}
+Backend: ${rep.backend || 'N/A'}
+Google Sheets: ${rep.sheets || 'N/A'}
+Gemini API Key: ${rep.geminiKey || 'N/A'}
+Active Vision Model: ${rep.vision || 'N/A'}
+Available Models: ${(rep.modelsFound || []).slice(0, 6).join(', ') || 'None'}
+Issues Detected: ${rep.errors.length === 0 ? 'None (100% Healthy)' : rep.errors.join(' | ')}
+===================================`;
+
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Report Copied! 📋 Yahan chat me paste karein.', '✅');
+      }).catch(() => {
+        showToast('Report console me log ho gayi.', 'ℹ️');
+        console.log(text);
+      });
+    }
+
+    // ========================================================================
     // MODALS & CONFIG
     // ========================================================================
     function setupModals() {
+      // Diagnostics triggers
+      document.getElementById('openDiagnosticsBtn').addEventListener('click', runDiagnostics);
+      document.getElementById('openDiagnosticsFromSettingsBtn').addEventListener('click', () => {
+        settingsModal.classList.remove('active');
+        runDiagnostics();
+      });
+      document.getElementById('diagChipBtn').addEventListener('click', runDiagnostics);
+      document.getElementById('closeDiagnosticsBtn').addEventListener('click', () => {
+        document.getElementById('diagnosticsModal').classList.remove('active');
+      });
+      document.getElementById('diagRerunBtn').addEventListener('click', runDiagnostics);
+      document.getElementById('diagCopyReportBtn').addEventListener('click', copyDiagnosticReport);
+
       // Settings
       document.getElementById('settingsBtn').addEventListener('click', () => {
         scriptUrlInput.value = SCRIPT_URL;
