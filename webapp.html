@@ -1128,12 +1128,15 @@
           </div>
 
           <!-- Action Buttons -->
-          <div class="btn-action-row">
+          <div class="btn-action-row" style="display:grid;grid-template-columns: 1fr 1fr 1.3fr;gap:6px;">
             <button class="btn-full btn-primary" id="openAddIpoModalBtn">
               <span>+ Apply IPO</span>
             </button>
             <button class="btn-full" id="openSmsLearnerBtn">
               <span>🧠 Teach SMS</span>
+            </button>
+            <button class="btn-full" id="checkAllotmentsBtn" style="background:linear-gradient(135deg, rgba(56,189,248,0.15), rgba(99,102,241,0.15));border:1px solid rgba(56,189,248,0.35);color:var(--text);font-weight:700;">
+              <span>⚡ Auto-Check Allotment</span>
             </button>
           </div>
 
@@ -2645,26 +2648,41 @@ Return ONLY raw valid JSON without markdown wrapping.
         } else {
           activeList.innerHTML = data.pendingList.map(ipo => {
             const regUrl = REGISTRAR_URLS[ipo.registrar] || 'https://linkintime.co.in/';
+            const maskedPan = ipo.panNumber && ipo.panNumber.length >= 10 
+              ? `${ipo.panNumber.substring(0,5)}••••${ipo.panNumber.substring(9)}` 
+              : (ipo.panNumber || '');
             return `
-              <div class="trans-item">
-                <div class="trans-left">
-                  <div class="trans-icon">🔒</div>
-                  <div class="trans-info">
-                    <div class="trans-title">${ipo.ipoName}</div>
-                    <div class="trans-meta">
-                      <span class="status-pill status-applied">Applied</span>
-                      <span>${ipo.account} (${ipo.familyMember})</span>
-                      ${ipo.isStuck ? `<span class="stuck-badge">⚠️ Stuck (${ipo.daysActive}d)</span>` : `<span>• ${ipo.daysActive}d ago</span>`}
-                      ${ipo.allotmentDate ? `<span class="badge-allotment">Allotment: ${ipo.allotmentDate}</span>` : ''}
+              <div class="trans-item" style="flex-direction:column;align-items:stretch;gap:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                  <div class="trans-left">
+                    <div class="trans-icon">🔒</div>
+                    <div class="trans-info">
+                      <div class="trans-title">${ipo.ipoName}</div>
+                      <div class="trans-meta">
+                        <span class="status-pill status-applied">Applied</span>
+                        <span>${ipo.account} (${ipo.familyMember})</span>
+                        ${ipo.isStuck ? `<span class="stuck-badge">⚠️ Stuck (${ipo.daysActive}d)</span>` : `<span>• ${ipo.daysActive}d ago</span>`}
+                        ${ipo.allotmentDate ? `<span class="badge-allotment">Allotment: ${ipo.allotmentDate}</span>` : ''}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
                   <div class="trans-amount">₹${ipo.amount.toLocaleString('en-IN')}</div>
-                  <div style="display:flex;gap:4px;">
-                    <a href="${regUrl}" target="_blank" class="btn-registrar">Check ↗</a>
-                    <button class="step-chip" style="padding:2px 6px;font-size:10px;" onclick="quickUpdateIPO('${escapeHtml(ipo.ipoName)}', '${ipo.account}', 'Allotted')">Allotted 🎉</button>
-                    <button class="step-chip" style="padding:2px 6px;font-size:10px;" onclick="quickUpdateIPO('${escapeHtml(ipo.ipoName)}', '${ipo.account}', 'Refunded')">Unblock 🔄</button>
+                </div>
+
+                <!-- PAN & Multi-Action Row -->
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;background:rgba(255,255,255,0.03);padding:6px 10px;border-radius:8px;font-size:11px;">
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <span style="color:var(--text-muted);">PAN:</span>
+                    ${maskedPan ? `
+                      <code style="background:var(--bg-input);padding:2px 6px;border-radius:4px;color:var(--accent);">${maskedPan}</code>
+                      <button class="step-chip" style="padding:2px 6px;font-size:10px;" onclick="copyPanToClipboard('${ipo.panNumber}', '${ipo.familyMember}')" title="Copy full PAN">📋 Copy</button>
+                    ` : `<span style="color:var(--text-dim);">(Hub 🎛️ me PAN jodein)</span>`}
+                  </div>
+                  <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                    <a href="${regUrl}" target="_blank" class="btn-registrar" style="font-size:10px;padding:3px 8px;">Check Allotment ↗</a>
+                    <button class="step-chip" style="padding:3px 7px;font-size:10px;background:rgba(52,211,153,0.15);color:#34d399;" onclick="quickUpdateIPO('${escapeHtml(ipo.ipoName)}', '${ipo.account}', 'Allotted')">Allotted 🎉</button>
+                    <button class="step-chip" style="padding:3px 7px;font-size:10px;background:rgba(248,113,113,0.15);color:#f87171;" onclick="quickUpdateIPO('${escapeHtml(ipo.ipoName)}', '${ipo.account}', 'Refunded')">Refund 🔄</button>
+                    <button class="step-chip" style="padding:3px 7px;font-size:10px;" onclick="quickUpdateAllIPO('${escapeHtml(ipo.ipoName)}', 'Refunded')" title="Is IPO ke saare applications refund mark karein">Sabka Refund 🔄</button>
                   </div>
                 </div>
               </div>
@@ -2704,6 +2722,24 @@ Return ONLY raw valid JSON without markdown wrapping.
       callApi('updateIPOStatus', { ipoName, account, status }, (res) => {
         showToast(`${ipoName} marked as ${status}!`, '✅');
         refreshIPOData();
+      });
+    };
+
+    window.quickUpdateAllIPO = function(ipoName, status) {
+      if (confirm(`"${ipoName}" ke saare pending applications ko "${status}" mark karna chahte hain?`)) {
+        callApi('updateAllIPOStatus', { ipoName, status, familyMember: 'all' }, (res) => {
+          showToast(res.message || `${ipoName} saare applications ${status} mark ho gaye!`, '✅');
+          refreshIPOData();
+        });
+      }
+    };
+
+    window.copyPanToClipboard = function(pan, memberName) {
+      if (!pan) { showToast('Is profile me PAN number save nahi hai.', '⚠️'); return; }
+      navigator.clipboard.writeText(pan).then(() => {
+        showToast(`${memberName} ka PAN (${pan}) copy ho gaya! 📋`, '✅');
+      }).catch(() => {
+        showToast(`PAN: ${pan}`, '📋');
       });
     };
 
@@ -3000,6 +3036,15 @@ Issues Detected: ${report?.errors?.length === 0 ? 'None (100% Healthy)' : (rep.e
       });
       document.getElementById('diagRerunBtn').addEventListener('click', runDiagnostics);
       document.getElementById('diagCopyReportBtn').addEventListener('click', copyDiagnosticReport);
+
+      // 1-Click Allotment Auto-Check
+      document.getElementById('checkAllotmentsBtn')?.addEventListener('click', () => {
+        showToast('Scanning Allotments on Allotment Date...', '🔍');
+        callApi('checkAllotmentsNow', {}, (res) => {
+          showToast(res.message || 'Allotment scan complete!', '⚡');
+          refreshIPOData();
+        });
+      });
 
       // Settings
       document.getElementById('settingsBtn').addEventListener('click', () => {
